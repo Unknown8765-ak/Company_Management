@@ -26,9 +26,6 @@ export default function EmployeePanel() {
     description: ""
   })
 
-  // --------------------------
-  // Fetch Employee Profile
-  // --------------------------
 
   const fetchEmployee = async () => {
     try {
@@ -41,9 +38,6 @@ export default function EmployeePanel() {
     }
   }
 
-  // --------------------------
-  // Fetch Tasks
-  // --------------------------
 
   const fetchTasks = async () => {
     try {
@@ -57,38 +51,25 @@ export default function EmployeePanel() {
     }
   }
 
-  // --------------------------
-  // Fetch Requirements
-  // --------------------------
 
   const fetchRequirements = async () => {
     try {
 
       const res = await getMyRequirementsAPI()
-
       setRequirements(res.data)
-
     } catch (err) {
-
       console.log(err.message)
 
     }
   }
-
-  // --------------------------
-  // Create Requirement
-  // --------------------------
 
   const handleSubmit = async (e) => {
 
     e.preventDefault()
 
     try {
-
       const res = await createRequirementAPI(form)
-
       setRequirements(prev => [...prev, res.data])
-
       setForm({
         title: "",
         description: ""
@@ -102,32 +83,31 @@ export default function EmployeePanel() {
 
   }
 
-  // --------------------------
-  // Initial Load
-  // --------------------------
-
   useEffect(() => {
 
     const loadData = async () => {
 
       await fetchEmployee()
-
       await fetchTasks()
-
       await fetchRequirements()
-
       setLoading(false)
-
     }
 
     loadData()
 
   }, [])
+useEffect(() => {
+  fetchRequirements()
 
+  const interval = setInterval(() => {
+    fetchRequirements()
+  }, 5000)
+
+  return () => clearInterval(interval)
+}, [])
   // --------------------------
   // Dashboard Stats
   // --------------------------
-
   const completed = tasks.filter(t => t.status === "completed").length
 
   const pending = tasks.filter(t => t.status !== "completed").length
@@ -188,11 +168,8 @@ export default function EmployeePanel() {
       return (
         <>
           <h1 className="text-2xl font-bold mb-6">My Tasks</h1>
-
           <div className="bg-white rounded-2xl shadow p-6">
-
             <table className="w-full text-left">
-
               <thead>
                 <tr className="border-b">
                   <th className="p-2">Task</th>
@@ -200,27 +177,16 @@ export default function EmployeePanel() {
                   <th className="p-2">Status</th>
                 </tr>
               </thead>
-
               <tbody>
-
                 {tasks.map(task => (
-
                   <tr key={task._id} className="border-b">
-
                     <td className="p-2">{task.title}</td>
-
                     <td className="p-2">{task.deadline}</td>
-
                     <td className="p-2">{task.status}</td>
-
                   </tr>
-
                 ))}
-
               </tbody>
-
             </table>
-
           </div>
         </>
       )
@@ -228,9 +194,7 @@ export default function EmployeePanel() {
     }
 
     // ---------------- Raise Requirement
-
     if (active === "raise") {
-
       return (
         <>
           <h1 className="text-2xl font-bold mb-6">

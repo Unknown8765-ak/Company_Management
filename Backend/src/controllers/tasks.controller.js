@@ -47,6 +47,15 @@ const createTask = asyncHandler(async (req,res)=>{
         status: "pending"
     })
     console.log("task :", task)
+    // 🔔 Notification create
+await Notification.create({
+  userId: assignedTo,
+  type: "task_assigned",
+  title: "New Task Assigned",
+  message: `You got a new task: ${title}`,
+  relatedId: task._id,
+  createdBy: req.user._id
+});
 
     const populatedTask = await Task.findById(task._id)
     .populate("assignedTo", "name email")
@@ -54,15 +63,13 @@ const createTask = asyncHandler(async (req,res)=>{
 
     console.log("populatedTask" , populatedTask)
     return res
-    .status(201)
+    .status(201)    
     .json(
         new ApiResponse(
             201,populatedTask,"Task created successfully"
         ))
 
 })
-
-
 
 const assignTask = asyncHandler(async (req,res)=>{
     const { taskId, userIds } = req.body
@@ -78,8 +85,6 @@ const assignTask = asyncHandler(async (req,res)=>{
     .json(new ApiResponse(200,task,"Task assigned successfully"))
 
 })
-
-
 
 /*
 -------------------------
@@ -154,6 +159,15 @@ const updateTaskStatus = asyncHandler(async (req,res)=>{
 
     await task.save()
 
+    await Notification.create({
+  userId: task.assignedBy, // HR
+  type: "task_updated",
+  title: "Task Status Updated",
+  message: `Task status changed to ${status}`,
+  relatedId: task._id,
+  createdBy: req.user._id
+});
+
     return res
     .status(200)
     .json(new ApiResponse(200,task,"Task status updated"))
@@ -185,7 +199,14 @@ const addTaskUpdate = asyncHandler(async (req,res)=>{
     })
 
     await task.save()
-
+    await Notification.create({
+  userId: task.assignedBy,
+  type: "task_update_added",
+  title: "New Task Update",
+  message: message,
+  relatedId: task._id,
+  createdBy: req.user._id
+});
     return res
     .status(200)
     .json(new ApiResponse(200,task,"Task update added"))

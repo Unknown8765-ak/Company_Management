@@ -1,28 +1,69 @@
 import { asyncHandler } from "../utils/asyncHandler.js"
 import Requirement from "../models/Requirement.model.js"
 import { ApiResponse } from "../utils/ApiResponse.js"
-import { ApiError } from "../utils/ApiError.js"
+import { ApiError } from "../utils/ApiError.js";
+import Notification from "../models/notification.model.js";
 
 // ---------------- CREATE ----------------
 
+// const createRequirement = asyncHandler(async (req, res) => {
+
+//   const { title, description } = req.body
+
+//   if (!title) {
+//     throw new ApiError(400, "Requirement title is required")
+//   }
+
+//   const requirement = await Requirement.create({
+//     title,
+//     description,
+//     raisedBy: req.user._id
+//   })
+
+//   return res.status(201).json(
+//     new ApiResponse(201, requirement, "Requirement raised successfully")
+//   )
+// })
+
 const createRequirement = asyncHandler(async (req, res) => {
 
-  const { title, description } = req.body
+  const { title, description } = req.body;
 
   if (!title) {
-    throw new ApiError(400, "Requirement title is required")
+    throw new ApiError(400, "Requirement title is required");
   }
 
   const requirement = await Requirement.create({
     title,
     description,
     raisedBy: req.user._id
-  })
+  });
+
+  // ✅ Same department HR fetch
+  const hr = await User.findOne({
+  role: "hr",
+  department: req.user.department
+});
+
+if (!hr) {
+  throw new ApiError(404, "HR not found for this department");
+}
+
+  // 🔔 Notifications
+  await Notification.create({
+  userId: hr._id,
+  type: "requirement_raised",
+  title: "New Requirement",
+  message: `${req.user.name} raised a requirement`,
+  relatedId: requirement._id,
+  createdBy: req.user._id
+});
+
 
   return res.status(201).json(
     new ApiResponse(201, requirement, "Requirement raised successfully")
-  )
-})
+  );
+});
 
 
 // ---------------- GET ALL (HR + ADMIN) ----------------
@@ -72,7 +113,29 @@ const sendToAdmin = asyncHandler(async (req, res) => {
   }
 
   requirement.status = "forwarded"
+  requirement.sentToAdmin =  true
   requirement.forwardedBy = req.user._id
+
+  await Notification.create({
+  userId: requirement.raisedBy,
+  type: "requirement_forwarded",
+  title: "Requirement Sent to Admin",
+  message: "Your requirement is sent to admin for approval",
+  relatedId: requirement._id,
+  createdBy: req.user._id
+});
+  const admin = await User.findOne({ role: "super_admin" });
+
+if (admin) {
+  await Notification.create({
+    userId: admin._id,
+    type: "requirement_forwarded",
+    title: "New Requirement for Approval",
+    message: "A requirement has been sent for approval",
+    relatedId: requirement._id,
+    createdBy: req.user._id
+  });
+}
 
   await requirement.save()
 
@@ -104,7 +167,35 @@ const updateRequirementStatus = asyncHandler(async (req, res) => {
 
   requirement.status = status
   requirement.approvedBy = req.user._id
+  
+  await Notification.create({
+  userId: requirement.raisedBy,
+  type: status === "approved"
+    ? "requirement_approved"
+    : "requirement_rejected",
+  title: status === "approved"
+    ? "Requirement Approved"
+    : "Requirement Rejected",
+  message: `Your requirement has been ${status}`,
+  relatedId: requirement._id,
+  createdBy: req.user._id
+});
 
+  const hr = await User.findOne({
+  role: "hr",
+  department: requirement.department
+});
+
+if (hr) {
+  await Notification.create({
+    userId: hr._id,
+    type: "requirement_status_updated",
+    title: "Requirement Status Updated",
+    message: `A requirement was ${status}`,
+    relatedId: requirement._id,
+    createdBy: req.user._id
+  });
+}
   await requirement.save()
 
   return res.status(200).json(

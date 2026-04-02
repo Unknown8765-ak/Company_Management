@@ -113,23 +113,22 @@ const handleCreateHR = async () => {
   }
 const handleStatusUpdate = async (id, status) => {
   try {
-
+    console.log("clicked")
     await updateRequirementStatusAPI({
       requirementId: id,
       status: status
     })
-
-    // UI update
     setRequirements(prev =>
       prev.map(req =>
         req._id === id ? { ...req, status } : req
       )
     )
-
+    alert("edit requirement succsessfully")
   } catch (err) {
     alert(err.message)
   }
 }
+
   const fetchData = async () => {
     try {
       setLoading(true)
@@ -164,6 +163,11 @@ const handleStatusUpdate = async (id, status) => {
     await deleteEmployeeAPI(id)
     setEmployees(prev => prev.filter(emp => emp._id !== id))
   }
+  
+  const handleDeleteHR = async (id) => {
+    await deleteEmployeeAPI(id)
+    setHrs(prev => prev.filter(hr => hr._id !== id))
+  }
 
   const handleDeleteDep = async (id) => {
     await deleteDepartmentAPI(id)
@@ -180,6 +184,7 @@ const handleStatusUpdate = async (id, status) => {
     fetchData()
   }, [])
 
+  
   const renderContent = () => {
 
     if (loading) return <p>Loading...</p>
@@ -263,7 +268,6 @@ const handleStatusUpdate = async (id, status) => {
 
         </table>
 
-        {/* 🔥 EMPTY STATE */}
         {departments.length === 0 && (
           <div className="text-center text-gray-500 py-6">
             No departments available
@@ -643,7 +647,6 @@ const handleStatusUpdate = async (id, status) => {
                   {req.raisedBy?.name || "—"}
                 </td>
 
-                {/* 🔥 STATUS COLOR */}
                 <td className={`p-3 font-semibold ${
                   req.status === "approved"
                     ? "text-green-600"
@@ -654,40 +657,34 @@ const handleStatusUpdate = async (id, status) => {
                   {req.status}
                 </td>
 
-                {/* 🔥 ACTION BUTTONS */}
                 <td className="p-3 flex justify-center gap-2">
 
                   {/* APPROVE */}
-                  <button
-                    onClick={() => handleStatusUpdate(req._id, "approved")}
-                    disabled={req.status !== "pending"}
-                    className={`px-3 py-1 rounded-lg text-white transition
-                      ${
-                        req.status === "approved"
-                          ? "bg-green-600"
-                          : req.status === "rejected"
-                          ? "bg-gray-300 cursor-not-allowed"
-                          : "bg-green-500 hover:bg-green-600"
-                      }`}
-                  >
-                    Approve
-                  </button>
+<div className="flex gap-3">
+  <button
+    onClick={() => handleStatusUpdate(req._id, "approved")}
+    className={`px-4 py-2 rounded-full font-medium transition-all duration-300
+      ${
+        req.status === "approved"
+          ? "bg-green-500 text-white shadow-lg shadow-green-300 scale-105"
+          : "bg-gray-200 text-gray-700 hover:bg-green-100"
+      }`}
+  >
+    ✅ Approve
+  </button>
 
-                  {/* REJECT */}
-                  <button
-                    onClick={() => handleStatusUpdate(req._id, "rejected")}
-                    disabled={req.status !== "pending"}
-                    className={`px-3 py-1 rounded-lg text-white transition
-                      ${
-                        req.status === "rejected"
-                          ? "bg-red-600"
-                          : req.status === "approved"
-                          ? "bg-gray-300 cursor-not-allowed"
-                          : "bg-red-500 hover:bg-red-600"
-                      }`}
-                  >
-                    Reject
-                  </button>
+  <button
+    onClick={() => handleStatusUpdate(req._id, "rejected")}
+    className={`px-4 py-2 rounded-full font-medium transition-all duration-300
+      ${
+        req.status === "rejected"
+          ? "bg-red-500 text-white shadow-lg shadow-red-300 scale-105"
+          : "bg-gray-200 text-gray-700 hover:bg-red-100"
+      }`}
+  >
+    ❌ Reject
+  </button>
+</div>
 
                 </td>
 

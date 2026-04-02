@@ -25,7 +25,7 @@ const AuthLoader = ({ children }) => {
           throw new Error("Not logged in")
         }
         console.log(data.data)
-        dispatch(login(data.user))
+        dispatch(login(data.data))
       } catch (err) {
         dispatch(logout())
       } finally {
@@ -36,7 +36,7 @@ const AuthLoader = ({ children }) => {
 
     loadUser()
   }, [dispatch])
-
+  // if (loading) return <p>Loading auth...</p> 
   return children
 }
 

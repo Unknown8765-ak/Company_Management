@@ -34,8 +34,8 @@ throw new ApiError(401,"Unauthorized request")
         throw new ApiError(409, "User already exists")
     }
     const departmentData = await Department.findOne({ name: department })
-    console.log(departmentData);
     console.log(departmentData._id);
+    console.log(departmentData);
     
     if(!departmentData){
         throw new ApiError(404, "Department not found")
@@ -49,9 +49,12 @@ throw new ApiError(401,"Unauthorized request")
         role: "hr",
         createdBy: req.user._id
     })
+    console.log(hr._id)
     departmentData.members.push(hr._id)
+    departmentData.manager = hr._id 
     departmentData.totalEmployees += 1
 
+    console.log(departmentData);
     await departmentData.save()
     return res
     .status(201)
