@@ -1,3 +1,5 @@
+import mongoose from "mongoose"
+
 const notificationSchema = new mongoose.Schema({
   userId: {
     type: mongoose.Schema.Types.ObjectId,
@@ -11,7 +13,8 @@ const notificationSchema = new mongoose.Schema({
       "task_assigned",
       "requirement_raised",
       "requirement_approved",
-      "requirement_rejected"
+      "requirement_rejected",
+      "requirement_forwarded"
     ],
     required: true
   },
@@ -36,3 +39,5 @@ const notificationSchema = new mongoose.Schema({
   }
 
 }, { timestamps: true });
+
+export const Notification = mongoose.model("Notification",notificationSchema)

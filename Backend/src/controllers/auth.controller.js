@@ -1,17 +1,17 @@
 import mongoose from "mongoose";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { User } from "../models/user.model.js";
-import {ApiError} from "../utils/ApiError.js"
+import {ApiError} from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 
 const generateAccessAndRefereshTokens = async(userId) =>{
     try {
         const user = await User.findById(userId)
-        console.log("USER 👉", user)
+        // console.log("USER 👉", user)
         const accessToken = await user.generateAccessToken()
         const refreshToken = await user.generateRefreshToken()
-        console.log("ACCESS", accessToken)
-        console.log("REFRESH", refreshToken)
+        // console.log("ACCESS", accessToken)
+        // console.log("REFRESH", refreshToken)
 
         user.refreshToken = refreshToken
         await user.save({ validateBeforeSave: false })
@@ -44,7 +44,7 @@ const login = asyncHandler(async (req,res)=>{
     if (!existedUser) {
         throw new ApiError(409 , "user not found");
     }
-    console.log(existedUser)
+    // console.log(existedUser)
 
     const passwordCorrect = existedUser.password
 
@@ -53,8 +53,8 @@ const login = asyncHandler(async (req,res)=>{
     }
 
     const { accessToken , refreshToken } = await generateAccessAndRefereshTokens(existedUser._id)
-    console.log("ACCESS", accessToken)
-console.log("REFRESH", refreshToken)
+//     console.log("ACCESS", accessToken)
+// console.log("REFRESH", refreshToken)
     const loggedInUser = await User.findOne({email}).select(
         "-password -refreshToken"
     )

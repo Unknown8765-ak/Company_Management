@@ -11,6 +11,10 @@ const requirementSchema = new mongoose.Schema({
     type: String
   },
 
+  department: {
+  type: mongoose.Schema.Types.ObjectId,
+  ref: "Department"
+},
   raisedBy: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "User"

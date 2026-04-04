@@ -4,12 +4,14 @@ import { getDepartmentsAPI ,deleteDepartmentAPI ,createDepartmentAPI} from "../f
 import { getAllEmployeesAPI ,getAllHRAPI ,createEmployeeAPI,createHRAPI,deleteEmployeeAPI} from "../features/users/usersAPI.js"
 import { getAllRequirementsAPI ,updateRequirementStatusAPI} from "../features/requirements/requirementsAPI.js"
 import { getAllTasksAPI ,deleteTaskAPI} from "../features/tasks/tasksAPI.js"
+import { getNotifications, markAsRead } from "../features/notification/notificationsAPI.js"
 
 
 export default function SuperAdminPanel() {
 
   const [active, setActive] = useState("dashboard")
-
+  const [open, setOpen] = useState(false);
+  const [notifications, setNotifications] = useState([]);
   const [departments, setDepartments] = useState([])
   const [employees, setEmployees] = useState([])
   const [requirements, setRequirements] = useState([])
@@ -159,6 +161,15 @@ const handleStatusUpdate = async (id, status) => {
     }
   }
 
+  const fetchNotifications = async () => {
+  try {
+    const res = await getNotifications();
+    setNotifications(res.data);
+  } catch (err) {
+    console.log(err.message);
+  }
+};
+
   const handleDeleteEmp = async (id) => {
     await deleteEmployeeAPI(id)
     setEmployees(prev => prev.filter(emp => emp._id !== id))
@@ -183,6 +194,25 @@ const handleStatusUpdate = async (id, status) => {
   useEffect(() => {
     fetchData()
   }, [])
+
+  useEffect(() => {
+  fetchNotifications();
+
+  const interval = setInterval(() => {
+    fetchNotifications();
+  }, 5000);
+
+  return () => clearInterval(interval);
+}, []);
+
+useEffect(() => {
+  const handleClick = () => setOpen(false);
+
+  if (open) {
+    window.addEventListener("click", handleClick);
+  }
+  return () => window.removeEventListener("click", handleClick);
+}, [open]);
 
   
   const renderContent = () => {
@@ -822,8 +852,77 @@ const handleStatusUpdate = async (id, status) => {
 
       {/* Content */}
       <div className="flex-1 p-8">
-        {renderContent()}
-      </div>
+
+  {/* 🔔 Notification Bell */}
+  <div className="flex justify-end mb-4 relative">
+
+    <div
+      className="relative cursor-pointer"
+      onClick={(e) => {
+        e.stopPropagation();
+        setOpen(!open);
+      }}
+    >
+      <span className="text-2xl">🔔</span>
+
+      {/* 🔴 unread count */}
+      {notifications.filter(n => !n.isRead).length > 0 && (
+        <span className="absolute -top-2 -right-2 bg-red-600 text-white text-xs px-1 rounded-full">
+          {notifications.filter(n => !n.isRead).length}
+        </span>
+      )}
+
+      {/* dropdown */}
+      {open && (
+        <div className="absolute right-0 mt-2 w-72 bg-white shadow-lg rounded-lg max-h-80 overflow-y-auto z-50">
+
+          {notifications.length === 0 && (
+            <p className="p-3 text-gray-500">No notifications</p>
+          )}
+
+          {notifications.map(n => (
+            <div
+              key={n._id}
+             onClick={async (e) => {
+                e.stopPropagation();
+
+                await markAsRead(n._id);
+
+                setNotifications(prev =>
+                  prev.map(item =>
+                    item._id === n._id
+                      ? { ...item, isRead: true }
+                      : item
+                  )
+                );
+
+                // 🔥 navigation logic
+                if (n.type === "task_assigned") {
+                  setActive("tasks");
+                }
+
+                if (n.type.includes("requirement")) {
+                  setActive("requirements");
+                }
+              }}
+              className={`p-3 border-b cursor-pointer ${
+                n.isRead ? "bg-gray-100" : "bg-white"
+              }`}
+            >
+              <p className="font-semibold text-sm">{n.title}</p>
+              <p className="text-xs text-gray-600">{n.message}</p>
+            </div>
+          ))}
+
+        </div>
+      )}
+    </div>
+  </div>
+
+  {/* 🔽 Existing Content */}
+  {renderContent()}
+
+</div>
     </div>
   )
 }

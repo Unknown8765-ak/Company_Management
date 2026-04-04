@@ -9,12 +9,14 @@ import {
   createRequirementAPI
 } from "../features/requirements/requirementsAPI.js"
 
+import { getNotifications, markAsRead } from "../features/notification/notificationsAPI.js";
+
 export default function EmployeePanel() {
-
+  
   const { user } = useSelector((state) => state.auth)
-
+  const [open, setOpen] = useState(false);
+  const [notifications, setNotifications] = useState([]);
   const [active, setActive] = useState("dashboard")
-
   const [employee, setEmployee] = useState(null)
   const [tasks, setTasks] = useState([])
   const [requirements, setRequirements] = useState([])
@@ -37,7 +39,15 @@ export default function EmployeePanel() {
 
     }
   }
-
+  const fetchNotifications = async () => {
+  try {
+    const res = await getNotifications();
+    console.log(res.data)
+    setNotifications(res.data);
+  } catch (err) {
+    console.log(err.message);
+  }
+};
 
   const fetchTasks = async () => {
     try {
@@ -56,6 +66,7 @@ export default function EmployeePanel() {
     try {
 
       const res = await getMyRequirementsAPI()
+      console.log(res.data)
       setRequirements(res.data)
     } catch (err) {
       console.log(err.message)
@@ -96,6 +107,8 @@ export default function EmployeePanel() {
     loadData()
 
   }, [])
+ 
+  
 useEffect(() => {
   fetchRequirements()
 
@@ -105,46 +118,49 @@ useEffect(() => {
 
   return () => clearInterval(interval)
 }, [])
-  // --------------------------
-  // Dashboard Stats
-  // --------------------------
-  const completed = tasks.filter(t => t.status === "completed").length
 
+useEffect(() => {
+  fetchNotifications();
+
+  const interval = setInterval(() => {
+    fetchNotifications();
+  }, 5000);
+
+  return () => clearInterval(interval);
+}, []);
+
+useEffect(() => {
+  const handleClick = () => setOpen(false);
+  if (open) {
+    window.addEventListener("click", handleClick);
+  }
+  return () => window.removeEventListener("click", handleClick);
+}, [open]);
+
+
+
+  const completed = tasks.filter(t => t.status === "completed").length
   const pending = tasks.filter(t => t.status !== "completed").length
 
-  // --------------------------
-  // UI Renderer
-  // --------------------------
 
   const renderContent = () => {
-
     if (loading) return <p>Loading...</p>
-
-    // ---------------- Dashboard
     if (active === "dashboard") {
-
       return (
         <>
           <h1 className="text-2xl font-bold mb-6">Dashboard</h1>
 
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-
             <StatCard title="Total Tasks" value={tasks.length} />
-
             <StatCard title="Completed Tasks" value={completed} />
-
             <StatCard title="Pending Tasks" value={pending} />
-
             <StatCard title="My Requirements" value={requirements.length} />
-
           </div>
 
           <div className="bg-white p-6 rounded-2xl shadow">
-
             <h2 className="text-lg font-semibold mb-4">
               Task Progress
             </h2>
-
             <Progress
               label="Completed"
               value={(completed / (tasks.length || 1)) * 100}
@@ -160,8 +176,6 @@ useEffect(() => {
       )
 
     }
-
-    // ---------------- Tasks
 
     if (active === "tasks") {
 
@@ -381,11 +395,77 @@ useEffect(() => {
 
       {/* Content */}
 
-      <div className="flex-1 p-8">
+     <div className="flex-1 p-8">
 
-        {renderContent()}
+  {/* 🔔 Notification Bell (TOP RIGHT) */}
+  <div className="flex justify-end mb-4 relative">
+
+    <div className="relative cursor-pointer"
+     onClick={(e) => {
+  e.stopPropagation();
+  setOpen(!open);
+}}
+     >
+
+      <span className="text-2xl">🔔</span>
+
+      {/* 🔴 Unread count */}
+      {notifications.filter(n => !n.isRead).length > 0 && (
+        <span className="absolute -top-2 -right-2 bg-red-600 text-white text-xs px-1 rounded-full">
+          {notifications.filter(n => !n.isRead).length}
+        </span>
+      )}
+
+      {/* Dropdown */}
+      {open &&(
+      <div className="absolute right-0 mt-2 w-72 bg-white shadow-lg rounded-lg max-h-80 overflow-y-auto z-50">
+
+        {notifications.length === 0 && (
+          <p className="p-3 text-gray-500">No notifications</p>
+        )}
+
+        {notifications.map(n => (
+
+          <div
+            key={n._id}
+            onClick={async (e) => {
+             e.stopPropagation();
+              await markAsRead(n._id);
+              setNotifications(prev =>
+                prev.map(item =>
+                  item._id === n._id
+                    ? { ...item, isRead: true }
+                    : item
+                )
+              );
+              if (n.type === "task_assigned") {
+                setActive("tasks");
+              }
+              if (n.type.includes("requirement")) {
+                setActive("requirements");
+                }
+            }}
+            className={`p-3 border-b cursor-pointer ${
+              n.isRead ? "bg-gray-100" : "bg-white"
+            }`}
+          >
+            <p className="font-semibold text-sm">{n.title}</p>
+            <p className="text-xs text-gray-600">{n.message}</p>
+          </div>
+
+        ))}
 
       </div>
+      )}
+
+    </div>
+
+  </div>
+
+  {/* 🔽 Existing Content */}
+  {renderContent()}
+
+</div>
 
     </div>
 

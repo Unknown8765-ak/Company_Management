@@ -2,8 +2,8 @@ import { asyncHandler } from "../utils/asyncHandler.js"
 import Requirement from "../models/Requirement.model.js"
 import { ApiResponse } from "../utils/ApiResponse.js"
 import { ApiError } from "../utils/ApiError.js";
-import Notification from "../models/notification.model.js";
-
+import  {Notification}  from "../models/notification.model.js";
+import {User} from "../models/user.model.js"
 // ---------------- CREATE ----------------
 
 // const createRequirement = asyncHandler(async (req, res) => {
@@ -34,20 +34,24 @@ const createRequirement = asyncHandler(async (req, res) => {
   }
 
   const requirement = await Requirement.create({
-    title,
-    description,
-    raisedBy: req.user._id
-  });
+  title,
+  description,
+  raisedBy: req.user._id,
+  department: req.user.department
+})
 
-  // ✅ Same department HR fetch
   const hr = await User.findOne({
   role: "hr",
-  department: req.user.department
+  department: req.user?.department
 });
+console.log("FOUND HR:", hr)
+console.log("USER:", req.user)
+console.log("USER DEPARTMENT:", req.user.department)
 
 if (!hr) {
   throw new ApiError(404, "HR not found for this department");
 }
+console.log("Sending notification to HR:", hr?._id)
 
   // 🔔 Notifications
   await Notification.create({
@@ -108,10 +112,11 @@ const sendToAdmin = asyncHandler(async (req, res) => {
 
   const requirement = await Requirement.findById(id)
 
+
   if (!requirement) {
     throw new ApiError(404, "Requirement not found")
   }
-
+  console.log(requirement)
   requirement.status = "forwarded"
   requirement.sentToAdmin =  true
   requirement.forwardedBy = req.user._id
@@ -125,7 +130,8 @@ const sendToAdmin = asyncHandler(async (req, res) => {
   createdBy: req.user._id
 });
   const admin = await User.findOne({ role: "super_admin" });
-
+console.log("Requirement:", requirement)
+console.log("Sending to admin ID:", admin?._id)
 if (admin) {
   await Notification.create({
     userId: admin._id,
@@ -138,6 +144,7 @@ if (admin) {
 }
 
   await requirement.save()
+  
 
   return res.status(200).json(
     new ApiResponse(200, requirement, "Sent to Super Admin")
@@ -184,7 +191,9 @@ const updateRequirementStatus = asyncHandler(async (req, res) => {
   const hr = await User.findOne({
   role: "hr",
   department: requirement.department
-});
+}); 
+console.log("USER:", req.user)
+console.log("USER DEPARTMENT:", req.user.department)
 
 if (hr) {
   await Notification.create({
@@ -196,6 +205,7 @@ if (hr) {
     createdBy: req.user._id
   });
 }
+
   await requirement.save()
 
   return res.status(200).json(

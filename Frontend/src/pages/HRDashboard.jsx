@@ -8,21 +8,21 @@ import {
   deleteEmployeeAPI,
   getSingleEmployeeAPI,
   createEmployeeAPI
-} from "../features/users/usersAPI"
-
-import { getAllTasksAPI,deleteTaskAPI } from "../features/tasks/tasksAPI"
-
+} from "../features/users/usersAPI";
+import { getAllTasksAPI,deleteTaskAPI } from "../features/tasks/tasksAPI";
 import {
   getAllRequirementsAPI,
   sendToAdminAPI
-} from "../features/requirements/requirementsAPI"
+} from "../features/requirements/requirementsAPI";
+import { getNotifications , markAsRead } from "../features/notification/notificationsAPI.js"
 
 export default function HRDashboard() {
 
   const { user } = useSelector(state => state.auth)
   const [active, setActive] = useState("dashboard")
-
   const [profile, setProfile] = useState(null)
+  const [open, setOpen] = useState(false);
+  const [notifications, setNotifications] = useState([]);
   const [employees, setEmployees] = useState([])
   const [tasks, setTasks] = useState([])
   const [requirements, setRequirements] = useState([])
@@ -132,6 +132,17 @@ const fetchEmployees = async () => {
     console.error(err)
   }
 }
+
+const fetchNotifications = async () => {
+  try {
+    const res = await getNotifications();
+    console.log(res.data)
+    setNotifications(res.data);
+  } catch (err) {
+    console.log(err.message);
+  }
+};
+
   // ---------------- Load Data ----------------
   useEffect(() => {
 
@@ -159,6 +170,24 @@ const fetchEmployees = async () => {
 
   }, [])
 
+  useEffect(() => {
+  fetchNotifications();
+
+  const interval = setInterval(() => {
+    fetchNotifications();
+  }, 5000);
+
+  return () => clearInterval(interval);
+}, []);
+
+useEffect(() => {
+  const handleClick = () => setOpen(false);
+  if (open) {
+    window.addEventListener("click", handleClick);
+  }
+  return () => window.removeEventListener("click", handleClick);
+}, [open]);
+
   // ---------------- Stats ----------------
   const completedTasks = tasks.filter(t => t.status === "completed").length
   const pendingTasks = tasks.length - completedTasks
@@ -177,6 +206,7 @@ const fetchEmployees = async () => {
 
   const handleSend = async (id) => {
     const res = await sendToAdminAPI(id)
+    console.log("send",res)
     alert("request send succesfully");
     setRequirements(prev =>
       prev.map(r => r._id === id ? res.data : r)
@@ -476,7 +506,6 @@ if (active === "tasks") {
   return (
     <div className="space-y-6">
 
-      {/* 🔥 HEADER */}
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold">Reports</h1>
       </div>
@@ -489,6 +518,7 @@ if (active === "tasks") {
           <thead>
             <tr className="border-b text-gray-600">
               <th className="p-3">Title</th>
+              <th className="p-3">RaisedBy</th>
               <th className="p-3">Status</th>
               <th className="p-3">Action</th>
             </tr>
@@ -500,10 +530,14 @@ if (active === "tasks") {
                 key={req._id}
                 className="border-b hover:bg-gray-50 transition"
               >
-
+                
                 <td className="p-3 font-medium">
                   {req.title}
                 </td>
+                <td className="p-3 font-medium">
+                  {req.raisedBy?.name || "—"}
+                </td>
+                
 
                 <td className={`p-3 font-semibold ${
                   req.status === "approved"
@@ -583,8 +617,87 @@ if (active === "tasks") {
 
       {/* Content */}
       <div className="flex-1 p-8">
-        {renderContent()}
-      </div>
+
+  {/* 🔔 Notification Bell */}
+  <div className="flex justify-end mb-4 relative">
+
+    <div
+      className="relative cursor-pointer"
+      onClick={(e) => {
+        e.stopPropagation();
+        setOpen(!open);
+      }}
+    >
+
+      <span className="text-2xl">🔔</span>
+
+      {/* 🔴 Unread count */}
+      {notifications.filter(n => !n.isRead).length > 0 && (
+        <span className="absolute -top-2 -right-2 bg-red-600 text-white text-xs px-1 rounded-full">
+          {notifications.filter(n => !n.isRead).length}
+        </span>
+      )}
+
+      {/* Dropdown */}
+      {open && (
+        <div className="absolute right-0 mt-2 w-72 bg-white shadow-lg rounded-lg max-h-80 overflow-y-auto z-50">
+
+          {notifications.length === 0 && (
+            <p className="p-3 text-gray-500">No notifications</p>
+          )}
+
+          {notifications.map(n => (
+            
+
+            <div
+              key={n._id}
+              onClick={async (e) => {
+                e.stopPropagation();
+
+                await markAsRead(n._id);
+
+                setNotifications(prev =>
+                  prev.map(item =>
+                    item._id === n._id
+                      ? { ...item, isRead: true }
+                      : item
+                  )
+                );
+
+                // 🔥 HR redirect logic
+                if (n.type === "requirement_raised") {
+                  setActive("reports");
+                }
+
+                if (n.type === "requirement_rejected") {
+                  setActive("reports");
+                }
+                if (n.type === "requirement_forwarded") {
+                    setActive("reports");
+                }
+
+              }}
+              className={`p-3 border-b cursor-pointer ${
+                n.isRead ? "bg-gray-100" : "bg-blue-50 font-semibold"
+              }`}
+            >
+              <p className="font-semibold text-sm">{n.title}</p>
+              <p className="text-xs text-gray-600">{n.message}</p>
+            </div>
+
+          ))}
+
+        </div>
+      )}
+
+    </div>
+
+  </div>
+
+  {/* 🔽 Existing Content */}
+  {renderContent()}
+
+</div>
 
     </div>
   )
