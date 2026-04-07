@@ -1,20 +1,18 @@
 import { useState, useEffect } from "react"
 import { useSelector } from "react-redux"
-
 import { getSingleEmployeeAPI } from "../features/users/usersAPI.js"
-import { getEmployeeTasksAPI } from "../features/tasks/tasksAPI.js"
-
-import {
-  getMyRequirementsAPI,
-  createRequirementAPI
-} from "../features/requirements/requirementsAPI.js"
-
+import { getEmployeeTasksAPI ,addTaskUpdateAPI ,addCommentAPI} from "../features/tasks/tasksAPI.js"
+import {getMyRequirementsAPI,createRequirementAPI} from "../features/requirements/requirementsAPI.js"
 import { getNotifications, markAsRead } from "../features/notification/notificationsAPI.js";
 
 export default function EmployeePanel() {
   
   const { user } = useSelector((state) => state.auth)
   const [open, setOpen] = useState(false);
+  const [selectedTask, setSelectedTask] = useState(null)
+  const [progress, setProgress] = useState(0)
+  const [message, setMessage] = useState("")
+  const [commentText, setCommentText] = useState("")
   const [notifications, setNotifications] = useState([]);
   const [active, setActive] = useState("dashboard")
   const [employee, setEmployee] = useState(null)
@@ -73,6 +71,47 @@ export default function EmployeePanel() {
 
     }
   }
+
+const handleAddComment = async () => {
+  try {
+    if (!selectedTask) return alert("No task selected")
+
+    await addCommentAPI(selectedTask._id, commentText)
+
+    setCommentText("")
+    fetchTasks()
+
+  } catch (error) {
+    alert(error.message)
+    }
+  }
+
+ const handleTaskUpdate = async () => {
+
+  if (!selectedTask) {
+    alert("No task selected ❌")
+    return
+  }
+  console.log(selectedTask._id);
+  try {
+    await addTaskUpdateAPI(
+      selectedTask._id,
+      {
+        progress,
+        message
+      }
+    )
+
+    alert("Task updated 🔥")
+
+    setSelectedTask(null)
+    setMessage("")
+    fetchTasks()
+
+  } catch (err) {
+    console.log(err.message)
+  }
+}
 
   const handleSubmit = async (e) => {
 
@@ -189,20 +228,154 @@ useEffect(() => {
                   <th className="p-2">Task</th>
                   <th className="p-2">Deadline</th>
                   <th className="p-2">Status</th>
+                  <th className="p-2">Progress</th>
+                  <th className="p-2">Action</th>
                 </tr>
               </thead>
               <tbody>
                 {tasks.map(task => (
                   <tr key={task._id} className="border-b">
                     <td className="p-2">{task.title}</td>
-                    <td className="p-2">{task.deadline}</td>
-                    <td className="p-2">{task.status}</td>
+                    <td className="p-2">{new Date(task.deadline).toLocaleDateString("en-IN")}</td>
+                    <td>{task.status}</td>
+                    <td>{task.progress || 0}%</td>
+
+                    <td>
+                      <button
+                        onClick={() => {
+                          setSelectedTask(task)
+                          setProgress(task.progress || 0)
+                        }}
+                        className="bg-blue-500 text-white px-2 py-1 rounded"
+                      >
+                        Update
+                      </button>
+                    </td>
                   </tr>
                 ))}
               </tbody>
             </table>
+      {selectedTask && (
+  <div className="mt-6 bg-white p-4 rounded shadow">
+
+    <h3 className="font-bold mb-2">
+      Update: {selectedTask.title}
+    </h3>
+
+    <p>Progress: {progress}%</p>
+
+    {/* 📁 Attachments */}
+    {selectedTask.attachments?.length > 0 && (
+      <div className="mt-4">
+        <h4 className="font-semibold mb-2">Attachments 📎</h4>
+
+        {selectedTask.attachments.map((file, index) => (
+          <a
+            key={index}
+            href={file.fileUrl}
+            target="_blank"
+            rel="noreferrer"
+            className="block text-blue-600 underline"
+          >
+            {file.fileName}
+          </a>
+        ))}
+      </div>
+    )}
+
+    {/* 🔥 Slider */}
+    <input
+      type="range"
+      min="0"
+      max="100"
+      value={progress}
+      onChange={(e) => setProgress(Number(e.target.value))}
+      className="w-full"
+    />
+
+    {/* 🔥 Message */}
+    <textarea
+      placeholder="Write update..."
+      value={message}
+      onChange={(e) => setMessage(e.target.value)}
+      className="w-full border p-2 mt-2"
+    />
+
+    {/* 🔥 Buttons */}
+    <div className="mt-2 space-x-2">
+
+      <button
+        onClick={handleTaskUpdate}
+        className="bg-green-600 text-white px-3 py-1 rounded"
+      >
+        Submit
+      </button>
+
+      <button
+        onClick={() => setSelectedTask(null)}
+        className="bg-gray-400 text-white px-3 py-1 rounded"
+      >
+        Cancel
+      </button>
+
+    </div>
+
+    {/* 💬 Comments Section 🔥 YAHI LAGANA HAI */}
+    <div className="mt-6">
+      <h3 className="font-bold mb-2">Comments 💬</h3>
+
+      <div className="max-h-40 overflow-y-auto space-y-2 mb-2">
+
+        {selectedTask.comments?.length === 0 && (
+          <p className="text-gray-500 text-sm">No comments yet</p>
+        )}
+
+        {selectedTask.comments?.map((c, i) => (
+          <div key={i} className="bg-gray-100 p-2 rounded">
+
+            <p className="text-sm font-semibold">
+              {c.user?.name || "User"}
+            </p>
+
+            <p className="text-sm">{c.message}</p>
+
+            <p className="text-xs text-gray-500">
+              {new Date(c.createdAt).toLocaleString("en-IN")}
+            </p>
+
           </div>
-        </>
+        ))}
+
+      </div>
+
+      {/* ✍️ Add Comment */}
+      <div className="flex gap-2">
+
+        <input
+          type="text"
+          value={commentText}
+          onChange={(e) => setCommentText(e.target.value)}
+          placeholder="Write a comment..."
+          className="flex-1 border p-2 rounded"
+          onKeyDown={(e) => {
+            if (e.key === "Enter") handleAddComment()
+          }}
+        />
+
+        <button
+          onClick={handleAddComment}
+          className="bg-blue-600 text-white px-3 rounded"
+        >
+          Send
+        </button>
+
+      </div>
+    </div>
+
+  </div>
+)}
+                </div>
+              </>
       )
 
     }
@@ -334,7 +507,7 @@ useEffect(() => {
 
             <ProfileField
               label="Date of Birth"
-              value={employee?.dob}
+              value={new Date(employee?.dob).toLocaleDateString("en-IN")}
             />
 
           </div>

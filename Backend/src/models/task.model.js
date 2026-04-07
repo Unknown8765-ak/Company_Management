@@ -30,10 +30,49 @@ const taskSchema = new mongoose.Schema({
     enum: ["pending", "in_progress", "completed"],
     default: "pending"
   },
+  progress: {
+  type: Number,
+  default: 0,
+  min: 0,
+  max: 100
+},
+  attachments: [
+      {
+        fileUrl: {
+          type: String,
+          required: true
+        },
+        fileName: {
+          type: String
+        },
+        uploadedAt: {
+          type: Date,
+          default: Date.now
+        }
+      }
+    ],
+
+    comments: [
+      {
+        message: {
+          type: String,
+          required: true
+        },
+        user: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "User"
+        },
+        createdAt: {
+          type: Date,
+          default: Date.now
+        }
+      }
+    ],
 
   updates: [
     {
       message: String,
+      progress: Number,
       updatedBy: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "User"

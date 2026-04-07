@@ -12,9 +12,11 @@ const notificationSchema = new mongoose.Schema({
     enum: [
       "task_assigned",
       "requirement_raised",
+      "task_update_added",
       "requirement_approved",
       "requirement_rejected",
-      "requirement_forwarded"
+      "requirement_forwarded",
+      "task_comment",
     ],
     required: true
   },
@@ -27,7 +29,6 @@ const notificationSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId
   },
 
-  // 🔥 kisne action kiya (HR ya employee)
   createdBy: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "User"

@@ -4,8 +4,8 @@ import { User } from "../models/user.model.js"
 import { asyncHandler } from "../utils/asyncHandler.js"
 import { ApiError } from "../utils/ApiError.js"
 import { ApiResponse } from "../utils/ApiResponse.js"
-import { Notification } from "../models/notification.model.js"
-
+import { Notification } from "../models/notification.model.js";
+import { uploadoncloudinary } from "../utils/cloudinary.js"
 
 
 /*
@@ -27,17 +27,19 @@ const createTask = asyncHandler(async (req,res)=>{
         throw new ApiError(400,"Task title required")
     }
     if (!assignedTo) {
-  throw new ApiError(400, "Please select employee")
-}
+        throw new ApiError(400, "Please select employee")
+    }
+
     const employee = await User.findById(assignedTo)
 
     if(!employee){
         throw new ApiError(400,"employee not found")
     }
     const hr = await User.findById(req.user._id)
+
     if (String(hr.department) !== String(employee.department)) {
-    throw new ApiError(403, "You can assign task only to your department employees")
-}
+        throw new ApiError(403, "You can assign task only to your department employees")
+    }
 
     const task = await Task.create({
         title,
@@ -48,15 +50,27 @@ const createTask = asyncHandler(async (req,res)=>{
         status: "pending"
     })
     console.log("task :", task)
-    // 🔔 Notification create
-await Notification.create({
-  userId: assignedTo,
-  type: "task_assigned",
-  title: "New Task Assigned",
-  message: `You got a new task: ${title}`,
-  relatedId: task._id,
-  createdBy: req.user._id
-});
+
+    if (req.file) {
+    const uploaded = await uploadoncloudinary(req.file.path);
+
+    if (uploaded) {
+        task.attachments.push({
+        fileUrl: uploaded.url,
+        fileName: req.file.originalname
+        });
+
+    await task.save();
+  }
+}
+    await Notification.create({
+    userId: assignedTo,
+    type: "task_assigned",
+    title: "New Task Assigned",
+    message: `You got a new task: ${title}`,
+    relatedId: task._id,
+    createdBy: req.user._id
+    });
 
     const populatedTask = await Task.findById(task._id)
     .populate("assignedTo", "name email")
@@ -87,21 +101,17 @@ const assignTask = asyncHandler(async (req,res)=>{
 
 })
 
-/*
--------------------------
-Get All Tasks
--------------------------
-*/
 
 const getAllTasks = asyncHandler(async (req,res)=>{
 
     let tasks
 
     if(["hr","super_admin"].includes(req.user.role)){
-        // HR / Admin -> all tasks
         tasks = await Task.find()
         .populate("assignedTo","name email")
         .populate("assignedBy","name")
+        .populate("comments.user", "name")
+        .populate("updates.updatedBy", "name")
     } 
     else {
         tasks = await Task.find({ assignedTo: req.user._id })
@@ -131,6 +141,7 @@ const getEmployeeTasks = asyncHandler(async (req,res)=>{
         assignedTo:userId
     })
     .populate("assignedBy","name")
+    .populate("comments.user","name")
 
     return res
     .status(200)
@@ -140,74 +151,101 @@ const getEmployeeTasks = asyncHandler(async (req,res)=>{
 
 
 
-/*
--------------------------
-Update Task Status
--------------------------
-*/
+const addComment = asyncHandler(async (req, res) => {
+  const { message } = req.body;
 
-const updateTaskStatus = asyncHandler(async (req,res)=>{
+  if (!message) {
+    throw new ApiError(400, "Comment message required");
+  }
 
-    const { taskId, status } = req.body
+  const task = await Task.findById(req.params.id);
 
-    const task = await Task.findById(taskId)
+  if (!task) {
+    throw new ApiError(404, "Task not found");
+  }
 
-    if(!task){
-        throw new ApiError(404,"Task not found")
-    }
+  task.comments.push({
+    message,
+    user: req.user._id
+  });
 
-    task.status = status
+  await task.save();
 
-    await task.save()
+  // Notification Logic
+  let notifyUserId;
 
-    await Notification.create({
-  userId: task.assignedBy, // HR
-  type: "task_updated",
-  title: "Task Status Updated",
-  message: `Task status changed to ${status}`,
-  relatedId: task._id,
-  createdBy: req.user._id
+  if (req.user._id.toString() === task.assignedTo.toString()) {
+    // 👨‍💻 Employee commented → notify HR/Admin
+    notifyUserId = task.assignedBy;
+  } else {
+    // 👨‍💼 HR/Admin commented → notify Employee
+    notifyUserId = task.assignedTo;
+  }
+
+  await Notification.create({
+    userId: notifyUserId,
+    type: "task_comment",
+    title: "New Comment",
+    message: `${req.user.name} commented on task`,
+    relatedId: task._id,
+    createdBy: req.user._id
+  });
+
+  return res.status(200).json(
+    new ApiResponse(200, task, "Comment added")
+  );
 });
 
-    return res
-    .status(200)
-    .json(new ApiResponse(200,task,"Task status updated"))
-
-})
 
 
-
-/*
--------------------------
-Add Task Update (Daily Work)
--------------------------
-*/
 
 const addTaskUpdate = asyncHandler(async (req,res)=>{
-
-    const { taskId, message } = req.body
+    const taskId = req.params.id
+    const {message,progress } = req.body
 
     const task = await Task.findById(taskId)
 
     if(!task){
         throw new ApiError(404,"Task not found")
     }
+
+    const progressNum = Number(progress);
+        if(progressNum < 0 || progressNum > 100){
+    throw new ApiError(400,"Progress must be between 0-100");
+    }
+
+    let status = "pending";
+
+    if(progressNum > 0 && progressNum < 100){
+    status = "in_progress"
+    } else if(progressNum === 100){
+    status = "completed"
+    }
+
+    task.progress = progressNum
+    task.status = status
 
     task.updates.push({
         message,
-        updatedBy:req.user._id,
-        date:new Date()
+        progress, // 🔥 NEW
+        updatedBy: req.user._id,
+        date: new Date()
     })
 
     await task.save()
-    await Notification.create({
-  userId: task.assignedBy,
-  type: "task_update_added",
-  title: "New Task Update",
-  message: message,
-  relatedId: task._id,
-  createdBy: req.user._id
-});
+    const notification = await Notification.create({
+        userId: task.assignedBy,
+        type: "task_update_added",
+        title: "New Task Update",
+        message: `${message} (${progress}%)`,
+        relatedId: task._id,
+        createdBy: req.user._id
+        });
+
+    if(!notification){
+        throw new ApiError(404,"notification not found")
+    }
+
     return res
     .status(200)
     .json(new ApiResponse(200,task,"Task update added"))
@@ -245,7 +283,7 @@ createTask,
 assignTask,
 getAllTasks,
 getEmployeeTasks,
-updateTaskStatus,
+addComment,
 addTaskUpdate,
 deleteTask
 }

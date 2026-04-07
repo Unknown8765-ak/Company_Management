@@ -149,6 +149,7 @@ const handleStatusUpdate = async (id, status) => {
 
       setDepartments(deptData)
       console.log(deptData)
+      console.log("emp",empData)
       setEmployees(empData)
       setRequirements(reqData)
       setTasks(taskData)
@@ -306,7 +307,7 @@ useEffect(() => {
 
       </div>
 
-      {/* 🔥 MODAL */}
+      
       {showDeptModal && (
         <div className="fixed inset-0 bg-black/40 flex justify-center items-center z-50">
 
@@ -362,7 +363,6 @@ useEffect(() => {
   return (
     <div className="space-y-6">
 
-      {/* 🔥 HEADER */}
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold">HR Management</h1>
 
@@ -384,6 +384,7 @@ useEffect(() => {
               <th className="p-3">Name</th>
               <th className="p-3">Email</th>
               <th className="p-3">Department</th>
+              <th className="p-3">Join Date</th>
               <th className="p-3 text-center">Action</th>
             </tr>
           </thead>
@@ -402,6 +403,9 @@ useEffect(() => {
                 <td className="p-3">
                   {hr.department?.name || "—"}
                 </td>
+                <td className="p-3">
+                  {new Date(hr.createdAt).toLocaleDateString("en-IN")}
+                </td>
 
                 <td className="p-3 text-center">
                   <button
@@ -418,7 +422,6 @@ useEffect(() => {
 
         </table>
 
-        {/* 🔥 EMPTY STATE */}
         {hrs.length === 0 && (
           <div className="text-center text-gray-500 py-6">
             No HRs available
@@ -427,7 +430,7 @@ useEffect(() => {
 
       </div>
 
-      {/* 🔥 MODAL */}
+     
       {showHRModal && (
         <div className="fixed inset-0 bg-black/40 flex justify-center items-center z-50">
 
@@ -534,6 +537,7 @@ useEffect(() => {
         <th className="p-2">Name</th>
         <th className="p-2">Role</th>
         <th className="p-2">Department</th>
+        <th className="p-2">Join Date</th>
         <th className="p-2">Action</th>
       </tr>
     </thead>
@@ -548,6 +552,9 @@ useEffect(() => {
           
           <td className="p-2">
             {emp.department?.name || "N/A"}
+          </td>
+          <td className="p-2">
+            {new Date(emp.createdAt).toLocaleDateString("en-IN")}
           </td>
 
           <td className="p-2">
@@ -756,6 +763,7 @@ useEffect(() => {
               <th className="p-3">Task</th>
               <th className="p-3">Assigned To</th>
               <th className="p-3">Status</th>
+              <th className="p-3">Deadline</th>
               <th className="p-3 text-center">Action</th>
             </tr>
           </thead>
@@ -784,6 +792,9 @@ useEffect(() => {
                     : "text-red-500"
                 }`}>
                   {task.status}
+                </td>
+                <td className="p-3">
+                  {new Date(task.deadline).toLocaleDateString("en-IN")}
                 </td>
 
                 {/* 🔥 ONLY DELETE BUTTON */}
@@ -919,7 +930,6 @@ useEffect(() => {
     </div>
   </div>
 
-  {/* 🔽 Existing Content */}
   {renderContent()}
 
 </div>

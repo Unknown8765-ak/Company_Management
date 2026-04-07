@@ -48,21 +48,16 @@ console.log("FOUND HR:", hr)
 console.log("USER:", req.user)
 console.log("USER DEPARTMENT:", req.user.department)
 
-if (!hr) {
-  throw new ApiError(404, "HR not found for this department");
-}
-console.log("Sending notification to HR:", hr?._id)
-
-  // 🔔 Notifications
+if (hr) {
   await Notification.create({
-  userId: hr._id,
-  type: "requirement_raised",
-  title: "New Requirement",
-  message: `${req.user.name} raised a requirement`,
-  relatedId: requirement._id,
-  createdBy: req.user._id
-});
-
+    userId: hr._id,
+    type: "requirement_raised",
+    title: "New Requirement",
+    message: `${req.user.name} raised a requirement`,
+    relatedId: requirement._id,
+    createdBy: req.user._id
+  });
+}
 
   return res.status(201).json(
     new ApiResponse(201, requirement, "Requirement raised successfully")
@@ -129,7 +124,12 @@ const sendToAdmin = asyncHandler(async (req, res) => {
   relatedId: requirement._id,
   createdBy: req.user._id
 });
+
   const admin = await User.findOne({ role: "super_admin" });
+  
+  if (!admin) {
+  throw new ApiError(404, "Admin not found");
+}
 console.log("Requirement:", requirement)
 console.log("Sending to admin ID:", admin?._id)
 if (admin) {
@@ -174,12 +174,14 @@ const updateRequirementStatus = asyncHandler(async (req, res) => {
 
   requirement.status = status
   requirement.approvedBy = req.user._id
+
+  const type = status === "approved"
+  ? "requirement_approved"
+  : "requirement_rejected";
   
   await Notification.create({
   userId: requirement.raisedBy,
-  type: status === "approved"
-    ? "requirement_approved"
-    : "requirement_rejected",
+  type,
   title: status === "approved"
     ? "Requirement Approved"
     : "Requirement Rejected",
@@ -198,7 +200,7 @@ console.log("USER DEPARTMENT:", req.user.department)
 if (hr) {
   await Notification.create({
     userId: hr._id,
-    type: "requirement_status_updated",
+    type,
     title: "Requirement Status Updated",
     message: `A requirement was ${status}`,
     relatedId: requirement._id,

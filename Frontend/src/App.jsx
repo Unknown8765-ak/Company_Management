@@ -2,7 +2,6 @@ import { useState } from 'react'
 import { Routes, Route, BrowserRouter } from 'react-router-dom'
 import ProtectedRoute from './components/ProtectedRoute'
 import AuthLoader from './components/AuthLoader'
-
 import Login from './pages/Login'
 import HRDashboard from './pages/HRDashboard'
 import EmployeeDashboard from './pages/EmployeeDashboard'

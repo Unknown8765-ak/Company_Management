@@ -25,6 +25,8 @@ export default function HRDashboard() {
   const [notifications, setNotifications] = useState([]);
   const [employees, setEmployees] = useState([])
   const [tasks, setTasks] = useState([])
+  const [selectedTask, setSelectedTask] = useState(null)
+  const [commentText, setCommentText] = useState("")
   const [requirements, setRequirements] = useState([])
   const [departments, setDepartments] = useState([])
   const [showModal, setShowModal] = useState(false)
@@ -43,7 +45,8 @@ const [taskData, setTaskData] = useState({
   title: "",
   description: "",
   assignedTo: "",
-  deadline: ""
+  deadline: "",
+
 })
 useEffect(() => {
   fetchEmployees()
@@ -122,7 +125,7 @@ const handleCreateEmployee = async () => {
 const fetchEmployees = async () => {
   try {
     const res = await getAllEmployeesAPI()
-    // console.log("reponse : ",res);
+    console.log("reponse : ",res);
     
     const filteredEmployees = res.data.filter(
   (emp) => emp.department?._id === profile?.department?._id
@@ -153,7 +156,6 @@ const fetchNotifications = async () => {
       
         const taskRes = await getAllTasksAPI()
         const reqRes = await getAllRequirementsAPI()
-        // console.log("profile : ",profileRes);
         
         setProfile(profileRes.data)
         setTasks(taskRes.data)
@@ -263,6 +265,7 @@ useEffect(() => {
             <tr className="border-b">
               <th className="p-2">Name</th>
               <th className="p-2">Role</th>
+              <th className="p-2">Join Date</th>
               <th className="p-2">Action</th>
             </tr>
           </thead>
@@ -272,6 +275,7 @@ useEffect(() => {
               <tr key={emp._id} className="border-b">
                 <td className="p-2">{emp.name}</td>
                 <td className="p-2">{emp.role}</td>
+                <td className="p-2">{new Date(emp.createdAt).toLocaleDateString("en-IN")}</td>
                 <td className="p-2">
                   <button className="bg-red-500 text-white px-2 py-1 rounded" 
                   onClick={()=>handleDelete(emp._id)}>
@@ -369,7 +373,7 @@ if (active === "tasks") {
   return (
     <div className="space-y-6">
 
-      {/* 🔥 HEADER */}
+    
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold">Tasks</h1>
 
@@ -389,8 +393,9 @@ if (active === "tasks") {
           <thead>
             <tr className="border-b text-gray-600">
               <th className="p-3">Title</th>
-              <th className="p-3">Status</th>
               <th className="p-3">Assigned To</th>
+              <th className="p-3">Status</th>
+              <th className="p-3">Deadline</th>
               <th className="p-3">Action</th>
             </tr>
           </thead>
@@ -401,6 +406,9 @@ if (active === "tasks") {
 
                 <td className="p-3 font-medium">{task.title}</td>
 
+                <td className="p-3">
+                  {task.assignedTo?.name || "—"}
+                </td>
                 <td className={`p-3 font-semibold ${
                   task.status === "completed"
                     ? "text-green-600"
@@ -412,7 +420,7 @@ if (active === "tasks") {
                 </td>
 
                 <td className="p-3">
-                  {task.assignedTo?.name || "—"}
+                  {new Date(task.deadline).toLocaleDateString("en-IN")}
                 </td>
 
                 <td className="p-3">
@@ -422,6 +430,12 @@ if (active === "tasks") {
                   >
                     Delete
                   </button>
+                  <button
+                  onClick={() => setSelectedTask(task)}
+                  className="bg-blue-500 text-white px-2 py-1 rounded"
+                >
+                  View
+                </button>
                 </td>
 
               </tr>
@@ -507,7 +521,7 @@ if (active === "tasks") {
     <div className="space-y-6">
 
       <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold">Reports</h1>
+        <h1 className="text-2xl font-bold">Requirement</h1>
       </div>
 
       {/* 🔥 TABLE CONTAINER */}
@@ -520,6 +534,7 @@ if (active === "tasks") {
               <th className="p-3">Title</th>
               <th className="p-3">RaisedBy</th>
               <th className="p-3">Status</th>
+              <th className="p-3">Raised Date</th>
               <th className="p-3">Action</th>
             </tr>
           </thead>
@@ -547,6 +562,9 @@ if (active === "tasks") {
                     : "text-red-500"
                 }`}>
                   {req.status}
+                </td>
+                 <td className="p-3 font-medium">
+                  {new Date(req.createdAt).toLocaleDateString("en-IN")}
                 </td>
 
                 <td className="p-3">
@@ -592,7 +610,7 @@ if (active === "tasks") {
             <Field label="Email" value={profile?.email} />
             <Field label="Department" value={profile?.department?.name} />
             <Field label="Role" value={profile?.role} />
-            <Field label="DOB" value={profile?.dob} />
+            <Field label="DOB" value={new Date(profile?.dob).toLocaleDateString("en-IN")}/>
           </div>
         </>
       )
@@ -610,7 +628,7 @@ if (active === "tasks") {
         <SidebarItem label="Dashboard" id="dashboard" setActive={setActive} />
         <SidebarItem label="Employees" id="employees" setActive={setActive} />
         <SidebarItem label="Tasks" id="tasks" setActive={setActive} />
-        <SidebarItem label="Reports" id="reports" setActive={setActive} />
+        <SidebarItem label="Requirement" id="reports" setActive={setActive} />
         <SidebarItem label="Profile" id="profile" setActive={setActive} />
 
       </div>

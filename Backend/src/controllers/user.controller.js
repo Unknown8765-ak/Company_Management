@@ -6,13 +6,6 @@ import { Department } from "../models/departments.model.js"
 
 
 
-/*
--------------------------
-Create HR
-Only Super Admin
--------------------------
-*/
-
 const createHR = asyncHandler(async (req, res) => {
 
     if(!req.user){

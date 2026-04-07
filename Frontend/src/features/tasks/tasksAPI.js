@@ -135,12 +135,10 @@ const updateTaskStatusAPI = async (data) => {
 }
 
 
-// ----------------------------
-// Add Task Update (Daily Work)
-// ----------------------------
-const addTaskUpdateAPI = async (data) => {
+
+const addTaskUpdateAPI = async (id,data) => {
   try {
-    const response = await fetch(`${API_BASE_URL}/update`, {
+    const response = await fetch(`${API_BASE_URL}/task/update/${id}`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
@@ -161,6 +159,7 @@ const addTaskUpdateAPI = async (data) => {
     throw err
   }
 }
+
 
 
 // ----------------------------
@@ -185,6 +184,32 @@ const deleteTaskAPI = async (id) => {
     throw err
   }
 }
+
+export const addCommentAPI = async (taskId, message) => {
+  try {
+    const res = await fetch(`${API_BASE_URL}/task/${taskId}/comment`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${localStorage.getItem("accessToken")}`
+      },
+      body: JSON.stringify({ message })
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      throw new Error(data.message || "Failed to add comment");
+    }
+
+    return data;
+
+  } catch (error) {
+    console.error("Add Comment API Error:", error.message);
+    throw error; // taaki UI me handle kar sake
+  }
+};
+
 
 export {
     createTaskAPI,
