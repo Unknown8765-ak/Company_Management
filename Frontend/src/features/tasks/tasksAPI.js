@@ -10,11 +10,8 @@ const createTaskAPI = async (data, id) => {
   try {
     const response = await fetch(`${API_BASE_URL}/create-task/${id}`, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
       credentials: "include",
-      body: JSON.stringify(data)
+      body: data   // 🔥 direct FormData bhejo
     })
 
     if (!response.ok) {
@@ -185,14 +182,14 @@ const deleteTaskAPI = async (id) => {
   }
 }
 
-export const addCommentAPI = async (taskId, message) => {
+const addCommentAPI = async (taskId, message) => {
   try {
     const res = await fetch(`${API_BASE_URL}/task/${taskId}/comment`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${localStorage.getItem("accessToken")}`
       },
+      credentials: "include",
       body: JSON.stringify({ message })
     });
 
@@ -218,5 +215,6 @@ export {
     updateTaskStatusAPI,
     getEmployeeTasksAPI,
     getAllTasksAPI,
-    assignTaskAPI
+    assignTaskAPI,
+    addCommentAPI
 }

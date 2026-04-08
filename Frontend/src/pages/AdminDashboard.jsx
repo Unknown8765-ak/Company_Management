@@ -237,7 +237,7 @@ useEffect(() => {
 
    if (active === "departments") {
   return (
-    <div className="space-y-6">
+    <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
 
       {/* 🔥 HEADER */}
       <div className="flex justify-between items-center">
@@ -310,9 +310,7 @@ useEffect(() => {
       
       {showDeptModal && (
         <div className="fixed inset-0 bg-black/40 flex justify-center items-center z-50">
-
-          <div className="bg-white p-6 rounded-2xl w-96 shadow-xl">
-
+<div className="bg-white p-6 rounded-3xl w-96 shadow-2xl border border-gray-100">
             <h2 className="text-xl font-bold mb-4 text-center">
               Create Department
             </h2>
@@ -361,7 +359,7 @@ useEffect(() => {
 
  if (active === "hr") {
   return (
-    <div className="space-y-6">
+    <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
 
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold">HR Management</h1>
@@ -396,18 +394,18 @@ useEffect(() => {
                 className="border-b hover:bg-gray-50 transition"
               >
 
-                <td className="p-3 font-medium">{hr.name}</td>
+                <td className="p-4 font-medium">{hr.name}</td>
 
-                <td className="p-3">{hr.email}</td>
+                <td className="p-4">{hr.email}</td>
 
-                <td className="p-3">
+                <td className="p-4">
                   {hr.department?.name || "—"}
                 </td>
-                <td className="p-3">
+                <td className="p-4">
                   {new Date(hr.createdAt).toLocaleDateString("en-IN")}
                 </td>
 
-                <td className="p-3 text-center">
+                <td className="p-4 text-center">
                   <button
                     onClick={() => handleDeleteHR(hr._id)}
                     className="bg-red-500 text-white px-3 py-1 rounded-lg hover:bg-red-600 transition"
@@ -518,7 +516,7 @@ useEffect(() => {
     <>
       {/* 🔥 TOP BAR */}
       <div className="flex justify-between items-center mb-4">
-        <h1 className="text-2xl font-bold">Employees</h1>
+        <h1 className="text-2xl font-bold text-gray-800 tracking-tight">Employees</h1>
 
         <button
           onClick={() => setShowModal(true)}
@@ -650,7 +648,7 @@ useEffect(() => {
 }
     if (active === "requirements") {
   return (
-    <div className="space-y-6">
+    <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
 
       {/* 🔥 HEADER */}
       <div className="flex justify-between items-center">
@@ -660,7 +658,7 @@ useEffect(() => {
       {/* 🔥 TABLE CONTAINER */}
       <div className="bg-white p-6 rounded-2xl shadow">
 
-        <table className="w-full text-left border-collapse">
+        <table className="w-full text-left border-separate border-spacing-y-2">
 
           <thead>
             <tr className="border-b text-gray-600">
@@ -680,7 +678,7 @@ useEffect(() => {
 
                 <td className="p-3 font-medium">{req.title}</td>
 
-                <td className="p-3">
+                <td className="p-4">
                   {req.raisedBy?.name || "—"}
                 </td>
 
@@ -847,7 +845,7 @@ useEffect(() => {
     <div className="min-h-screen flex bg-gray-100">
 
       {/* Sidebar */}
-      <div className="w-64 bg-white shadow-lg p-5">
+      <div className="w-64 bg-gradient-to-b from-gray-900 to-gray-800 text-white p-6 shadow-xl">
         <h2 className="text-xl font-bold mb-6">Super Admin</h2>
 
         <nav className="space-y-2">
@@ -862,7 +860,7 @@ useEffect(() => {
       </div>
 
       {/* Content */}
-      <div className="flex-1 p-8">
+      <div className="flex-1 p-8 bg-gray-50 min-h-screen">
 
   {/* 🔔 Notification Bell */}
   <div className="flex justify-end mb-4 relative">
@@ -944,7 +942,7 @@ function SidebarItem({ label, id, setActive }) {
   return (
     <button
       onClick={() => setActive(id)}
-      className="block w-full text-left px-3 py-2 rounded hover:bg-gray-200"
+      className="block w-full text-left px-3 py-2 rounded-xl hover:bg-gray-700 transition"
     >
       {label}
     </button>

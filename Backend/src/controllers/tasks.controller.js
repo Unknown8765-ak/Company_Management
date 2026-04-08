@@ -8,13 +8,6 @@ import { Notification } from "../models/notification.model.js";
 import { uploadoncloudinary } from "../utils/cloudinary.js"
 
 
-/*
--------------------------
-Create Task
-HR + Super Admin
--------------------------
-*/
-
 const createTask = asyncHandler(async (req,res)=>{
 
     if(!["hr","super_admin"].includes(req.user.role)){
@@ -22,7 +15,7 @@ const createTask = asyncHandler(async (req,res)=>{
     }
 
     const { title, description, assignedTo, deadline } = req.body
-
+    console.log(title)
     if(!title){
         throw new ApiError(400,"Task title required")
     }
@@ -49,7 +42,7 @@ const createTask = asyncHandler(async (req,res)=>{
         deadline,
         status: "pending"
     })
-    console.log("task :", task)
+    // console.log("task :", task)
 
     if (req.file) {
     const uploaded = await uploadoncloudinary(req.file.path);
@@ -157,7 +150,7 @@ const addComment = asyncHandler(async (req, res) => {
   if (!message) {
     throw new ApiError(400, "Comment message required");
   }
-
+  console.log(message)
   const task = await Task.findById(req.params.id);
 
   if (!task) {

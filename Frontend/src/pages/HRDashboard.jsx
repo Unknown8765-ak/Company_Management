@@ -9,7 +9,7 @@ import {
   getSingleEmployeeAPI,
   createEmployeeAPI
 } from "../features/users/usersAPI";
-import { getAllTasksAPI,deleteTaskAPI } from "../features/tasks/tasksAPI";
+import { getAllTasksAPI,deleteTaskAPI,addCommentAPI} from "../features/tasks/tasksAPI";
 import {
   getAllRequirementsAPI,
   sendToAdminAPI
@@ -46,7 +46,7 @@ const [taskData, setTaskData] = useState({
   description: "",
   assignedTo: "",
   deadline: "",
-
+  file: null
 })
 useEffect(() => {
   fetchEmployees()
@@ -77,9 +77,21 @@ const handleTaskChange = (e) => {
 
 const handleCreateTask = async () => {
   try {
-    await createTaskAPI(taskData)
-    console.log("taskData : ",taskData)
-    alert("Task Created & Assigned ")
+    const formData = new FormData()
+
+    formData.append("title", taskData.title)
+    formData.append("description", taskData.description)
+    formData.append("assignedTo", taskData.assignedTo)
+    formData.append("deadline", taskData.deadline)
+
+    if (taskData.file) {
+      formData.append("file", taskData.file)
+    }
+    console.log(formData)
+
+    await createTaskAPI(formData)
+
+    alert("Task Created & Assigned")
 
     setShowTaskModal(false)
 
@@ -87,10 +99,10 @@ const handleCreateTask = async () => {
       title: "",
       description: "",
       assignedTo: "",
-      deadline: ""
+      deadline: "",
+      file: null
     })
 
-    // refresh tasks
     const res = await getAllTasksAPI()
     setTasks(res.data || [])
 
@@ -145,7 +157,24 @@ const fetchNotifications = async () => {
     console.log(err.message);
   }
 };
+const handleAddComment = async () => {
+  try {
+    await addCommentAPI(selectedTask._id, commentText)
 
+    setCommentText("")
+    alert("message send succesfully")
+
+    // 🔥 refresh selected task
+    const res = await getAllTasksAPI()
+    setTasks(res.data)
+
+    const updated = res.data.find(t => t._id === selectedTask._id)
+    setSelectedTask(updated)
+
+  } catch (err) {
+    alert(err.message)
+  }
+}
   // ---------------- Load Data ----------------
   useEffect(() => {
 
@@ -262,7 +291,7 @@ useEffect(() => {
       <div className="bg-white p-6 rounded-2xl shadow">
         <table className="w-full text-left">
           <thead>
-            <tr className="border-b">
+            <tr className="bg-white shadow-sm hover:shadow-md transition rounded-lg">
               <th className="p-2">Name</th>
               <th className="p-2">Role</th>
               <th className="p-2">Join Date</th>
@@ -293,8 +322,8 @@ useEffect(() => {
       {showModal && (
         <div className="fixed inset-0 bg-black bg-opacity-40 flex justify-center items-center">
 
-          <div className="bg-white p-6 rounded-xl w-96">
-
+          
+<div className="bg-white p-6 rounded-2xl w-96 shadow-2xl animate-fadeIn">
             <h2 className="text-xl font-bold mb-4">Add Employee</h2>
 
             <input
@@ -388,8 +417,7 @@ if (active === "tasks") {
       {/* 🔥 TABLE CONTAINER */}
       <div className="bg-white p-6 rounded-2xl shadow">
 
-        <table className="w-full text-left border-collapse">
-
+        <table className="w-full text-left border-separate border-spacing-y-2">
           <thead>
             <tr className="border-b text-gray-600">
               <th className="p-3">Title</th>
@@ -432,7 +460,7 @@ if (active === "tasks") {
                   </button>
                   <button
                   onClick={() => setSelectedTask(task)}
-                  className="bg-blue-500 text-white px-2 py-1 rounded"
+                  className="bg-blue-500 text-white px-3 py-1 rounded-xl m-1"
                 >
                   View
                 </button>
@@ -490,6 +518,17 @@ if (active === "tasks") {
               className="w-full border rounded-lg p-2 mb-4 focus:outline-none focus:ring-2 focus:ring-blue-500"
               value={taskData.deadline}
               onChange={handleTaskChange}
+            />
+            <input
+              type="file"
+              accept=".pdf"
+              onChange={(e) =>
+                setTaskData({
+                  ...taskData,
+                  file: e.target.files[0]
+                })
+              }
+              className="w-full border p-2 mb-3"
             />
 
             <div className="flex justify-end gap-3">
@@ -618,12 +657,15 @@ if (active === "tasks") {
   }
 
   return (
-    <div className="flex min-h-screen bg-gray-100">
+   <div className="flex min-h-screen bg-linear-to-br from-gray-100 to-gray-200">
 
       {/* Sidebar */}
-      <div className="w-64 bg-gray-900 text-white p-5">
+      <div className="w-64 bg-linear-to-b from-gray-900 via-gray-800 to-gray-900 
+text-white p-5 shadow-2xl">
 
-        <h2 className="text-2xl font-bold mb-8">HR Panel</h2>
+        <h2 className="text-2xl font-bold mb-8 tracking-wide">
+  🚀 HR Panel
+</h2>
 
         <SidebarItem label="Dashboard" id="dashboard" setActive={setActive} />
         <SidebarItem label="Employees" id="employees" setActive={setActive} />
@@ -647,7 +689,9 @@ if (active === "tasks") {
       }}
     >
 
-      <span className="text-2xl">🔔</span>
+      <div className="text-2xl bg-white shadow-md p-2 rounded-full hover:scale-110 transition">
+  🔔
+</div>
 
       {/* 🔴 Unread count */}
       {notifications.filter(n => !n.isRead).length > 0 && (
@@ -715,7 +759,62 @@ if (active === "tasks") {
   {/* 🔽 Existing Content */}
   {renderContent()}
 
-</div>
+      </div>
+
+    {selectedTask && (
+      <div className="fixed inset-0 bg-black/40 flex justify-center items-center z-50">
+
+        <div className="bg-white w-125 p-5 rounded-xl shadow-xl">
+
+          <h2 className="text-xl font-bold mb-3">
+            {selectedTask.title}
+          </h2>
+
+          {/* 🔥 COMMENTS LIST */}
+          <div className="h-60 overflow-y-auto border p-2 mb-3">
+
+            {selectedTask.comments?.length === 0 && (
+              <p className="text-gray-500 text-sm">No comments yet</p>
+            )}
+
+            {selectedTask.comments?.map((c, i) => (
+              <div key={i} className="mb-2">
+                <p className="text-sm font-semibold">
+                  {c.user?.name || "User"}
+                </p>
+                <p className="text-sm">{c.message}</p>
+              </div>
+            ))}
+
+          </div>
+
+          {/* 🔥 ADD COMMENT */}
+          <div className="flex gap-2">
+            <input
+              value={commentText}
+              onChange={(e) => setCommentText(e.target.value)}
+              placeholder="Write a comment..."
+              className="flex-1 border p-2 rounded"
+            />
+
+            <button
+              onClick={handleAddComment}
+              className="bg-blue-600 text-white px-3 rounded"
+            >
+              Send
+            </button>
+          </div>
+
+          <button
+            onClick={() => setSelectedTask(null)}
+            className="mt-3 text-red-500"
+          >
+            Close
+          </button>
+
+        </div>
+      </div>
+    )}
 
     </div>
   )
@@ -727,7 +826,8 @@ function SidebarItem({ label, id, setActive }) {
   return (
     <button
       onClick={() => setActive(id)}
-      className="block w-full text-left mb-3 hover:text-gray-300"
+      className="block w-full text-left px-3 py-2 rounded-lg 
+hover:bg-white/10 hover:translate-x-1 transition-all duration-200"
     >
       {label}
     </button>
@@ -736,8 +836,11 @@ function SidebarItem({ label, id, setActive }) {
 
 function Stat({ title, value, color }) {
   return (
-    <div className="bg-white p-5 rounded-xl shadow">
-      <h3 className="text-gray-500">{title}</h3>
+    <div className="bg-linear-to-r from-white to-gray-100 
+p-5 rounded-2xl shadow-lg hover:scale-105 transition">
+      <h3 className="text-gray-500 flex items-center gap-2">
+  📊 {title}
+</h3>
       <p className={`text-2xl font-bold ${
         color === "green"
           ? "text-green-600"

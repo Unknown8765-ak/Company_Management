@@ -10,6 +10,7 @@ deleteTask,
 addComment
 } from "../controllers/tasks.controller.js"
 import { verifyJWT } from "../middlewares/auth.middleware.js"
+import { upload } from "../middlewares/multer.middleware.js"
 
 const router = express.Router()
 

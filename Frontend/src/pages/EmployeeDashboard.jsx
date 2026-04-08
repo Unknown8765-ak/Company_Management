@@ -79,6 +79,7 @@ const handleAddComment = async () => {
     await addCommentAPI(selectedTask._id, commentText)
 
     setCommentText("")
+    alert("message send successfully");
     fetchTasks()
 
   } catch (error) {
@@ -182,8 +183,8 @@ useEffect(() => {
   const pending = tasks.filter(t => t.status !== "completed").length
 
 
-  const renderContent = () => {
-    if (loading) return <p>Loading...</p>
+const renderContent = () => {
+  if (loading) return <p>Loading...</p>
     if (active === "dashboard") {
       return (
         <>
@@ -224,7 +225,7 @@ useEffect(() => {
           <div className="bg-white rounded-2xl shadow p-6">
             <table className="w-full text-left">
               <thead>
-                <tr className="border-b">
+                <tr className="border-b hover:bg-gray-50 transition">
                   <th className="p-2">Task</th>
                   <th className="p-2">Deadline</th>
                   <th className="p-2">Status</th>
@@ -256,10 +257,10 @@ useEffect(() => {
               </tbody>
             </table>
       {selectedTask && (
-  <div className="mt-6 bg-white p-4 rounded shadow">
+ <div className="mt-6 bg-white p-5 rounded-2xl shadow-xl border">
 
     <h3 className="font-bold mb-2">
-      Update: {selectedTask.title}
+    Task: {selectedTask.title}
     </h3>
 
     <p>Progress: {progress}%</p>
@@ -306,7 +307,7 @@ useEffect(() => {
 
       <button
         onClick={handleTaskUpdate}
-        className="bg-green-600 text-white px-3 py-1 rounded"
+        className="bg-green-600 hover:bg-green-700 text-white px-4 py-1 rounded-lg transition"
       >
         Submit
       </button>
@@ -331,9 +332,9 @@ useEffect(() => {
         )}
 
         {selectedTask.comments?.map((c, i) => (
-          <div key={i} className="bg-gray-100 p-2 rounded">
+          <div key={i} className="bg-gray-50 p-3 rounded-lg shadow-sm">
 
-            <p className="text-sm font-semibold">
+            <p className="text-sm font-semibold text-indigo-600">
               {c.user?.name || "User"}
             </p>
 
@@ -356,7 +357,7 @@ useEffect(() => {
           value={commentText}
           onChange={(e) => setCommentText(e.target.value)}
           placeholder="Write a comment..."
-          className="flex-1 border p-2 rounded"
+          className="flex-1 border border-gray-300 p-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
           onKeyDown={(e) => {
             if (e.key === "Enter") handleAddComment()
           }}
@@ -520,15 +521,14 @@ useEffect(() => {
 
   return (
 
-    <div className="min-h-screen flex bg-gray-100">
+   <div className="min-h-screen flex bg-linear-to-br from-gray-100 to-gray-200">
 
       {/* Sidebar */}
+      <div className="w-64 bg-linear-to-b from-gray-900 to-gray-800 text-white p-5 shadow-xl">
 
-      <div className="w-64 bg-white shadow-lg p-5">
-
-        <h2 className="text-xl font-bold mb-6">
-          Employee Panel
-        </h2>
+       <h2 className="text-2xl font-bold mb-8 tracking-wide">
+  🚀 Employee Panel
+</h2>
 
         <nav className="space-y-2">
 
@@ -580,7 +580,7 @@ useEffect(() => {
 }}
      >
 
-      <span className="text-2xl">🔔</span>
+      <span className="text-2xl hover:scale-110 transition cursor-pointer">🔔</span>
 
       {/* 🔴 Unread count */}
       {notifications.filter(n => !n.isRead).length > 0 && (
@@ -654,7 +654,7 @@ function SidebarItem({ label, id, setActive }) {
   return (
     <button
       onClick={() => setActive(id)}
-      className="block w-full text-left px-3 py-2 rounded hover:bg-gray-200"
+      className="block w-full text-left px-4 py-2 rounded-lg hover:bg-white/10 transition-all duration-300"
     >
       {label}
     </button>
@@ -666,11 +666,11 @@ function SidebarItem({ label, id, setActive }) {
 function StatCard({ title, value }) {
 
   return (
-    <div className="bg-white p-4 rounded-2xl shadow">
+    <div className="bg-white p-5 rounded-2xl shadow-lg hover:scale-105 transition-all duration-300">
 
       <p className="text-gray-500">{title}</p>
 
-      <p className="text-2xl font-bold">{value}</p>
+     <p className="text-3xl font-bold text-indigo-600">{value}</p>
 
     </div>
   )
@@ -688,7 +688,7 @@ function Progress({ label, value }) {
       <div className="w-full bg-gray-200 h-3 rounded-full">
 
         <div
-          className="bg-blue-600 h-3 rounded-full"
+          className="bg-linear-to-r from-indigo-500 to-purple-500 h-3 rounded-full transition-all duration-500"
           style={{ width: `${value}%` }}
         />
 
