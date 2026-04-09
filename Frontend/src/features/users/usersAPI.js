@@ -1,6 +1,6 @@
 // src/features/users/userAPI.js
 
-const API_BASE_URL = "http://localhost:8000/api/v1/users"
+const API_BASE_URL = "https://company-management-5yta.onrender.com"
 
 
 // ----------------------------
@@ -8,7 +8,7 @@ const API_BASE_URL = "http://localhost:8000/api/v1/users"
 // ----------------------------
 const createHRAPI = async (data) => {
   try {
-    const response = await fetch(`${API_BASE_URL}/create-hr`, {
+    const response = await fetch(`${API_BASE_URL}/api/v1/users/create-hr`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
@@ -36,7 +36,7 @@ const createHRAPI = async (data) => {
 // ----------------------------
 const createEmployeeAPI = async (data) => {
   try {
-    const response = await fetch(`${API_BASE_URL}/create-employee`, {
+    const response = await fetch(`${API_BASE_URL}/api/v1/users/create-employee`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
@@ -64,7 +64,7 @@ const createEmployeeAPI = async (data) => {
 // ----------------------------
 const getAllEmployeesAPI = async () => {
   try {
-    const response = await fetch(`${API_BASE_URL}/employees`, {
+    const response = await fetch(`${API_BASE_URL}/api/v1/users/employees`, {
       method: "GET",
       credentials: "include"
     })
@@ -83,7 +83,7 @@ const getAllEmployeesAPI = async () => {
 }
 const getAllHRAPI = async () => {
   try {
-    const response = await fetch(`${API_BASE_URL}/hrs`, {
+    const response = await fetch(`${API_BASE_URL}/api/v1/users/hrs`, {
       method: "GET",
       credentials: "include"
     })
@@ -107,7 +107,7 @@ const getAllHRAPI = async () => {
 // ----------------------------
 const getSingleEmployeeAPI = async (id) => {
   try {
-    const response = await fetch(`${API_BASE_URL}/employees/${id}`, {
+    const response = await fetch(`${API_BASE_URL}/api/v1/users/employees/${id}`, {
       method: "GET",
       credentials: "include"
     })
@@ -131,7 +131,7 @@ const getSingleEmployeeAPI = async (id) => {
 // ----------------------------
 const updateEmployeeAPI = async (id, data) => {
   try {
-    const response = await fetch(`${API_BASE_URL}/update-employees/${id}`, {
+    const response = await fetch(`${API_BASE_URL}/api/v1/users/update-employees/${id}`, {
       method: "PATCH",
       headers: {
         "Content-Type": "application/json"
@@ -159,7 +159,7 @@ const updateEmployeeAPI = async (id, data) => {
 // ----------------------------
 const deleteEmployeeAPI = async (id) => {
   try {
-    const response = await fetch(`${API_BASE_URL}/delete-employee/${id}`, {
+    const response = await fetch(`${API_BASE_URL}/api/v1/users/delete-employee/${id}`, {
       method: "DELETE",
       credentials: "include"
     })
