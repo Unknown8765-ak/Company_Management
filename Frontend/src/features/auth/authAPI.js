@@ -5,7 +5,7 @@ const API_BASE_URL = "https://company-management-5yta.onrender.com" // backend k
 
 const loginUserAPI = async (credentials) => {
   try {
-    const response = await fetch(`${API_BASE_URL}/login`, {
+    const response = await fetch(`${API_BASE_URL}/api/v1/auth/login`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(credentials),
@@ -28,7 +28,7 @@ const loginUserAPI = async (credentials) => {
 
 const logoutUserAPI = async () => {
   try {
-    const response = await fetch(`${API_BASE_URL}/logout`, {
+    const response = await fetch(`${API_BASE_URL}/api/v1/auth/logout`, {
       method: "POST",
       credentials: "include"
     })
@@ -49,7 +49,7 @@ const logoutUserAPI = async () => {
 
 const getCurrentUserAPI = async () => {
   try {
-    const response = await fetch(`${API_BASE_URL}/me`, {
+    const response = await fetch(`${API_BASE_URL}/api/v1/auth/me`, {
       method: "GET",
       credentials: "include"
     })
