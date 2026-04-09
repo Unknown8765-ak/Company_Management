@@ -4,7 +4,7 @@ import { login, logout, stopLoading } from "../features/auth/authSlice"
 
 const AuthLoader = ({ children }) => {
   const dispatch = useDispatch()
-  const API_URL = "http://localhost:8000"
+  const API_URL = import.meta.env.VITE_API_URL;
 
   useEffect(() => {
     const loadUser = async () => {
