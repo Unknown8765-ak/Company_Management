@@ -1,6 +1,6 @@
 // src/features/tasks/taskAPI.js
 
-const API_BASE_URL = "http://localhost:8000/api/v1/tasks"
+const API_BASE_URL = "https://company-management-5yta.onrender.com"
 
 
 // ----------------------------
@@ -8,7 +8,7 @@ const API_BASE_URL = "http://localhost:8000/api/v1/tasks"
 // ----------------------------
 const createTaskAPI = async (data, id) => {
   try {
-    const response = await fetch(`${API_BASE_URL}/create-task/${id}`, {
+    const response = await fetch(`${API_BASE_URL}/api/v1/tasks/create-task/${id}`, {
       method: "POST",
       credentials: "include",
       body: data   // 🔥 direct FormData bhejo
@@ -33,7 +33,7 @@ const createTaskAPI = async (data, id) => {
 // ----------------------------
 const assignTaskAPI = async (data) => {
   try {
-    const response = await fetch(`${API_BASE_URL}/assign`, {
+    const response = await fetch(`${API_BASE_URL}/api/v1/tasks/assign`, {
       method: "PATCH",
       headers: {
         "Content-Type": "application/json"
@@ -61,7 +61,7 @@ const assignTaskAPI = async (data) => {
 // ----------------------------
 const getAllTasksAPI = async () => {
   try {
-    const response = await fetch(`${API_BASE_URL}/tasks`, {
+    const response = await fetch(`${API_BASE_URL}/api/v1/tasks/tasks`, {
       method: "GET",
       credentials: "include"
     })
@@ -85,7 +85,7 @@ const getAllTasksAPI = async () => {
 // ----------------------------
 const getEmployeeTasksAPI = async () => {
   try {
-    const response = await fetch(`${API_BASE_URL}/my-tasks`, {
+    const response = await fetch(`${API_BASE_URL}/api/v1/tasks/my-tasks`, {
       method: "GET",
       credentials: "include"
     })
@@ -109,7 +109,7 @@ const getEmployeeTasksAPI = async () => {
 // ----------------------------
 const updateTaskStatusAPI = async (data) => {
   try {
-    const response = await fetch(`${API_BASE_URL}/status`, {
+    const response = await fetch(`${API_BASE_URL}/api/v1/tasks/status`, {
       method: "PATCH",
       headers: {
         "Content-Type": "application/json"
@@ -135,7 +135,7 @@ const updateTaskStatusAPI = async (data) => {
 
 const addTaskUpdateAPI = async (id,data) => {
   try {
-    const response = await fetch(`${API_BASE_URL}/task/update/${id}`, {
+    const response = await fetch(`${API_BASE_URL}/api/v1/tasks/task/update/${id}`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
@@ -164,7 +164,7 @@ const addTaskUpdateAPI = async (id,data) => {
 // ----------------------------
 const deleteTaskAPI = async (id) => {
   try {
-    const response = await fetch(`${API_BASE_URL}/task/delete/${id}`, {
+    const response = await fetch(`${API_BASE_URL}/api/v1/tasks/task/delete/${id}`, {
       method: "DELETE",
       credentials: "include"
     })
@@ -184,7 +184,7 @@ const deleteTaskAPI = async (id) => {
 
 const addCommentAPI = async (taskId, message) => {
   try {
-    const res = await fetch(`${API_BASE_URL}/task/${taskId}/comment`, {
+    const res = await fetch(`${API_BASE_URL}/api/v1/tasks/task/${taskId}/comment`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
