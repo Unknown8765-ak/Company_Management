@@ -1,6 +1,6 @@
 // src/features/auth/authAPI.js
 
-const API_BASE_URL = "http://localhost:8000/api/v1/auth" // backend ka base URL
+const API_BASE_URL = "https://company-management-5yta.onrender.com" // backend ka base URL
 
 
 const loginUserAPI = async (credentials) => {
