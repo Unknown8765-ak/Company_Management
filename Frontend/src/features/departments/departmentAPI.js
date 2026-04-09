@@ -1,4 +1,4 @@
-const API_BASE_URL = "http://localhost:8000/api/v1/departments"
+const API_BASE_URL = "https://company-management-5yta.onrender.com"
 
 
 // ----------------------------
@@ -6,7 +6,7 @@ const API_BASE_URL = "http://localhost:8000/api/v1/departments"
 // ----------------------------
 export const createDepartmentAPI = async (data) => {
   try {
-    const response = await fetch(`${API_BASE_URL}/create-department`, {
+    const response = await fetch(`${API_BASE_URL}api/v1/departments/create-department`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
@@ -34,7 +34,7 @@ export const createDepartmentAPI = async (data) => {
 // ----------------------------
 export const getDepartmentsAPI = async () => {
   try {
-    const response = await fetch(`${API_BASE_URL}/departments`, {
+    const response = await fetch(`${API_BASE_URL}api/v1/departments/departments`, {
       method: "GET",
       credentials: "include"
     })
@@ -58,7 +58,7 @@ export const getDepartmentsAPI = async () => {
 // ----------------------------
 export const updateDepartmentAPI = async (id, data) => {
   try {
-    const response = await fetch(`${API_BASE_URL}/department/${id}`, {
+    const response = await fetch(`${API_BASE_URL}api/v1/departments/department/${id}`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json"
@@ -86,7 +86,7 @@ export const updateDepartmentAPI = async (id, data) => {
 // ----------------------------
 export const deleteDepartmentAPI = async (id) => {
   try {
-    const response = await fetch(`${API_BASE_URL}/delete-department/${id}`, {
+    const response = await fetch(`${API_BASE_URL}api/v1/departments/delete-department/${id}`, {
       method: "DELETE",
       credentials: "include"
     })
@@ -110,7 +110,7 @@ export const deleteDepartmentAPI = async (id) => {
 // ----------------------------
 export const addMemberToDepartmentAPI = async (data) => {
   try {
-    const response = await fetch(`${API_BASE_URL}/department/add-member`, {
+    const response = await fetch(`${API_BASE_URL}api/v1/departments/department/add-member`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
@@ -138,7 +138,7 @@ export const addMemberToDepartmentAPI = async (data) => {
 // ----------------------------
 export const getDepartmentAnalyticsAPI = async () => {
   try {
-    const response = await fetch(`${API_BASE_URL}/department/analytics`, {
+    const response = await fetch(`${API_BASE_URL}api/v1/departments/department/analytics`, {
       method: "GET",
       credentials: "include"
     })
