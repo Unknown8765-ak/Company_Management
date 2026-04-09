@@ -1,6 +1,6 @@
 // src/features/requirements/requirementAPI.js
 
-const API_BASE_URL = "http://localhost:8000/api/v1/requirements"
+const API_BASE_URL = "https://company-management-5yta.onrender.com"
 
 
 // ----------------------------
@@ -9,7 +9,7 @@ const API_BASE_URL = "http://localhost:8000/api/v1/requirements"
 export const createRequirementAPI = async (data) => {
   try {
 
-    const response = await fetch(`${API_BASE_URL}/create`, {
+    const response = await fetch(`${API_BASE_URL}/api/v1/requirements/create`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
@@ -38,7 +38,7 @@ export const createRequirementAPI = async (data) => {
 export const getAllRequirementsAPI = async () => {
   try {
 
-    const response = await fetch(`${API_BASE_URL}`, {
+    const response = await fetch(`${API_BASE_URL}/api/v1/requirements`, {
       method: "GET",
       credentials: "include"
     })
@@ -63,7 +63,7 @@ export const getAllRequirementsAPI = async () => {
 export const getMyRequirementsAPI = async () => {
   try {
 
-    const response = await fetch(`${API_BASE_URL}/my-requirements`, {
+    const response = await fetch(`${API_BASE_URL}/api/v1/requirements/my-requirements`, {
       method: "GET",
       credentials: "include"
     })
@@ -88,7 +88,7 @@ export const getMyRequirementsAPI = async () => {
 export const updateRequirementStatusAPI = async (data) => {
   try {
 
-    const response = await fetch(`${API_BASE_URL}/status`, {
+    const response = await fetch(`${API_BASE_URL}/api/v1/requirements/status`, {
       method: "PATCH",
       headers: {
         "Content-Type": "application/json"
@@ -117,7 +117,7 @@ export const updateRequirementStatusAPI = async (data) => {
 export const deleteRequirementAPI = async (id) => {
   try {
 
-    const response = await fetch(`${API_BASE_URL}/${id}`, {
+    const response = await fetch(`${API_BASE_URL}/api/v1/requirements/${id}`, {
       method: "DELETE",
       credentials: "include"
     })
@@ -136,7 +136,7 @@ export const deleteRequirementAPI = async (id) => {
 }
 
 export const sendToAdminAPI = async (id) => {
-  const response = await fetch(`${API_BASE_URL}/send-to-admin`, {
+  const response = await fetch(`${API_BASE_URL}/api/v1/requirements/send-to-admin`, {
     method: "PATCH",
     headers: {
       "Content-Type": "application/json"
