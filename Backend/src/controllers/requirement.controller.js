@@ -4,26 +4,7 @@ import { ApiResponse } from "../utils/ApiResponse.js"
 import { ApiError } from "../utils/ApiError.js";
 import  {Notification}  from "../models/notification.model.js";
 import {User} from "../models/user.model.js"
-// ---------------- CREATE ----------------
 
-// const createRequirement = asyncHandler(async (req, res) => {
-
-//   const { title, description } = req.body
-
-//   if (!title) {
-//     throw new ApiError(400, "Requirement title is required")
-//   }
-
-//   const requirement = await Requirement.create({
-//     title,
-//     description,
-//     raisedBy: req.user._id
-//   })
-
-//   return res.status(201).json(
-//     new ApiResponse(201, requirement, "Requirement raised successfully")
-//   )
-// })
 
 const createRequirement = asyncHandler(async (req, res) => {
 
@@ -37,13 +18,16 @@ const createRequirement = asyncHandler(async (req, res) => {
   title,
   description,
   raisedBy: req.user._id,
-  department: req.user.department
+  department: req.user.department,
+  company: req.user.company 
 })
-
+  console.log(requirement)
   const hr = await User.findOne({
   role: "hr",
-  department: req.user?.department
+  department: req.user?.department,
+  company: req.user.company 
 });
+
 console.log("FOUND HR:", hr)
 console.log("USER:", req.user)
 console.log("USER DEPARTMENT:", req.user.department)
@@ -55,7 +39,8 @@ if (hr) {
     title: "New Requirement",
     message: `${req.user.name} raised a requirement`,
     relatedId: requirement._id,
-    createdBy: req.user._id
+    createdBy: req.user._id,
+    company: req.user.company 
   });
 }
 
@@ -69,11 +54,11 @@ if (hr) {
 
 const getAllRequirements = asyncHandler(async (req, res) => {
 
-  if (!["hr", "super_admin"].includes(req.user.role)) {
+  if (!["hr", "admin"].includes(req.user.role)) {
     throw new ApiError(403, "Not authorized")
   }
 
-  const requirements = await Requirement.find()
+  const requirements = await Requirement.find({company: req.user.company })
     .populate("raisedBy", "name email")
     .populate("approvedBy", "name")
     .populate("forwardedBy", "name")
@@ -87,10 +72,19 @@ const getAllRequirements = asyncHandler(async (req, res) => {
 // ---------------- GET MY ----------------
 
 const getMyRequirements = asyncHandler(async (req, res) => {
+  console.log("REQ USER ID:", req.user._id)
+console.log("REQ USER COMPANY:", req.user.company)
+
+// const requirements = await Requirement.find({
+//   raisedBy: req.user._id,
+//   company: req.user.company
+// })
 
   const requirements = await Requirement.find({
-    raisedBy: req.user._id
+    raisedBy: req.user._id,
+    company: req.user.company 
   }).populate("approvedBy", "name")
+  console.log("FOUND REQUIREMENTS:", requirements)
 
   return res.status(200).json(
     new ApiResponse(200, requirements, "Your requirements")
@@ -105,12 +99,17 @@ const sendToAdmin = asyncHandler(async (req, res) => {
 
   const { id } = req.body
 
-  const requirement = await Requirement.findById(id)
+  const requirement = await Requirement.findOne({
+    _id: id,
+  company: req.user.company})
 
 
   if (!requirement) {
     throw new ApiError(404, "Requirement not found")
   }
+  if(requirement.sentToAdmin){
+  throw new ApiError(400,"Already sent to admin")
+}
   console.log(requirement)
   requirement.status = "forwarded"
   requirement.sentToAdmin =  true
@@ -122,10 +121,14 @@ const sendToAdmin = asyncHandler(async (req, res) => {
   title: "Requirement Sent to Admin",
   message: "Your requirement is sent to admin for approval",
   relatedId: requirement._id,
-  createdBy: req.user._id
+  createdBy: req.user._id,
+  company: req.user.company
 });
 
-  const admin = await User.findOne({ role: "super_admin" });
+  const admin = await User.findOne({ 
+    role: "admin",
+    company: req.user.company
+   });
   
   if (!admin) {
   throw new ApiError(404, "Admin not found");
@@ -139,7 +142,8 @@ if (admin) {
     title: "New Requirement for Approval",
     message: "A requirement has been sent for approval",
     relatedId: requirement._id,
-    createdBy: req.user._id
+    createdBy: req.user._id,
+    company: req.user.company
   });
 }
 
@@ -156,22 +160,28 @@ if (admin) {
 
 const updateRequirementStatus = asyncHandler(async (req, res) => {
 
-  if (req.user.role !== "super_admin") {
+  if (req.user.role !== "admin") {
     throw new ApiError(403, "Only super admin can approve/reject")
   }
 
   const { requirementId, status } = req.body
+  
 
   if (!["approved", "rejected"].includes(status)) {
     throw new ApiError(400, "Invalid status")
   }
 
-  const requirement = await Requirement.findById(requirementId)
+  const requirement = await Requirement.findOne({
+  _id: requirementId,
+  company: req.user.company
+})
 
   if (!requirement) {
     throw new ApiError(404, "Requirement not found")
   }
-
+  if(requirement.status !== "pending" && requirement.status !== "forwarded"){
+  throw new ApiError(400,"Already processed")
+}
   requirement.status = status
   requirement.approvedBy = req.user._id
 
@@ -187,12 +197,14 @@ const updateRequirementStatus = asyncHandler(async (req, res) => {
     : "Requirement Rejected",
   message: `Your requirement has been ${status}`,
   relatedId: requirement._id,
-  createdBy: req.user._id
+  createdBy: req.user._id,
+  company: req.user.company
 });
 
   const hr = await User.findOne({
   role: "hr",
-  department: requirement.department
+  department: requirement.department,
+  company: req.user.company
 }); 
 console.log("USER:", req.user)
 console.log("USER DEPARTMENT:", req.user.department)
@@ -204,7 +216,8 @@ if (hr) {
     title: "Requirement Status Updated",
     message: `A requirement was ${status}`,
     relatedId: requirement._id,
-    createdBy: req.user._id
+    createdBy: req.user._id,
+    company: req.user.company
   });
 }
 
@@ -222,7 +235,10 @@ const deleteRequirement = asyncHandler(async (req, res) => {
 
   const { id } = req.params
 
-  const requirement = await Requirement.findById(id)
+  const requirement = await Requirement.findOne({
+  _id: id,
+  company: req.user.company
+})
 
   if (!requirement) {
     throw new ApiError(404, "Requirement not found")
@@ -230,7 +246,7 @@ const deleteRequirement = asyncHandler(async (req, res) => {
 
   if (
     requirement.raisedBy.toString() !== req.user._id.toString() &&
-    req.user.role !== "super_admin"
+    req.user.role !== "admin"
   ) { 
     throw new ApiError(403, "Not allowed")
   }

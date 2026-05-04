@@ -1,9 +1,6 @@
 const API_BASE_URL = "https://company-management-5yta.onrender.com"
 
 
-// ----------------------------
-// Create Department
-// ----------------------------
 export const createDepartmentAPI = async (data) => {
   try {
     const response = await fetch(`${API_BASE_URL}/api/v1/departments/create-department`, {

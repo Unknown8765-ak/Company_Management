@@ -9,34 +9,25 @@ import { ApiResponse } from "../utils/ApiResponse.js"
 
 const createDepartment = asyncHandler(async (req,res)=>{
 
-if(req.user.role !== "super_admin"){
+if(req.user.role !== "admin"){
 throw new ApiError(403,"Only super admin can create department")
 }
 
 const { name, description } = req.body
-
+if (!req.user.company) {
+    throw new ApiError(404,"company is required")
+}
 if(!name){
-throw new ApiError(400,"Department name required")
+throw new ApiError(404,"Department name required")
 }
 
-// const manager = await User.findOne({
-// name: hrName,
-// email: hrEmail,
-// role:"hr"
-// })
-
-// if(!manager){
-// throw new ApiError(404,"HR not found")
-// }
 
 const department = await Department.create({
 name,
 description,
-// manager: manager._id
+company: req.user.company    
 })
 
-// manager.department = department._id
-// await manager.save()
 
 return res.status(201).json(
 new ApiResponse(201,department,"Department created successfully")
@@ -53,7 +44,9 @@ Get Departments
 
 const getDepartments = asyncHandler(async (req,res)=>{
 
-    const departments = await Department.find()
+    const departments = await Department.find({ 
+        company: req.user.company
+    })
     .populate("manager","name email")
     .populate("members","name email")
 
@@ -69,7 +62,7 @@ const getDepartments = asyncHandler(async (req,res)=>{
 const updateDepartment = asyncHandler(async (req,res)=>{
 
     const { id } = req.params
-    if(req.user.role !== "super_admin"){
+    if(req.user.role !== "admin"){
 throw new ApiError(403,"Only super admin can create department")
 }
     const { name, description } = req.body
@@ -80,11 +73,11 @@ throw new ApiError(403,"Only super admin can create department")
         throw new ApiError(404,"id not found")
     }
 
-    const department = await Department.findByIdAndUpdate(
-        id,
-        { name, description },
-        { new:true }
-    )
+    const department = await Department.findOneAndUpdate(
+  { _id: id, company: req.user.company },
+  { name, description },
+  { new: true }
+)
 
 
     if(!department){
@@ -92,7 +85,7 @@ throw new ApiError(403,"Only super admin can create department")
     }
     await User.updateMany(
         { department: id },
-        { $set: { department } }
+        { $set: { department : id} }
     )
 
     return res.status(200).json(
@@ -110,7 +103,7 @@ Delete Department
 */
 
 const deleteDepartment = asyncHandler(async (req,res)=>{
-    if(req.user.role !== "super_admin"){
+    if(req.user.role !== "admin"){
 throw new ApiError(403,"Only super admin can create department")
 }
 
@@ -122,9 +115,9 @@ throw new ApiError(403,"Only super admin can create department")
         throw new ApiError(404,"Department not found")
     }
     await User.updateMany(
-        { department: id },
-        { $set: { department: null } }
-    )
+    { department: id, company: req.user.company },
+    { $set: { department: null } }
+)
 
     await department.deleteOne()
 
@@ -146,17 +139,23 @@ const addMemberToDepartment = asyncHandler(async (req,res)=>{
 
     const { departmentId, userId } = req.body
 
-    const department = await Department.findById(departmentId)
-
+    const department = await Department.findOne({
+    _id: departmentId,
+    company: req.user.company
+})
+    
     if(!department){
         throw new ApiError(404,"Department not found")
     }
-
+    
     const user = await User.findById(userId)
-
+    
     if(!user){
         throw new ApiError(404,"User not found")
     }
+    if(user.company.toString() !== req.user.company.toString()){
+  throw new ApiError(403,"User belongs to different company")
+}
 
     if(department.members.includes(userId)){
         throw new ApiError(400,"User already in department")
@@ -178,66 +177,13 @@ const addMemberToDepartment = asyncHandler(async (req,res)=>{
 
 
 
-/*
--------------------------------
-Transfer Employee
--------------------------------
-*/
 
-// const transferEmployee = asyncHandler(async (req,res)=>{
-
-//     const { userId, newDepartmentId } = req.body
-
-//     const user = await User.findById(userId)
-
-//     if(!user){
-//         throw new ApiError(404,"User not found")
-//     }
-
-//     const oldDepartmentId = user.department
-
-//     if(oldDepartmentId){
-
-//         await Department.findByIdAndUpdate(
-//             oldDepartmentId,
-//             {
-//                 $pull:{members:userId},
-//                 $inc:{totalEmployees:-1}
-//             }
-//         )
-
-//     }
-
-//     await Department.findByIdAndUpdate(
-//         newDepartmentId,
-//         {
-//             $push:{members:userId},
-//             $inc:{totalEmployees:1}
-//         }
-//     )
-
-//     user.department = newDepartmentId
-
-//     await user.save()
-
-//     return res.status(200).json(
-//         new ApiResponse(200,user,"Employee transferred successfully")
-//     )
-
-// })
-
-
-
-/*
--------------------------------
-Department Analytics
--------------------------------
-*/
 
 const getDepartmentAnalytics = asyncHandler(async (req,res)=>{
 
-    const departments = await Department.find()
-    .select("name totalEmployees")
+   const departments = await Department.find({
+    company: req.user.company
+}).select("name totalEmployees")
 
     return res.status(200).json(
         new ApiResponse(200,departments,"Department analytics fetched")

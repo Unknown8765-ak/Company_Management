@@ -7,10 +7,16 @@ import { getAllTasksAPI ,deleteTaskAPI} from "../features/tasks/tasksAPI.js"
 import { getNotifications, markAsRead } from "../features/notification/notificationsAPI.js"
 
 
-export default function SuperAdminPanel() {
+export default function AdminPanel() {
 
   const [active, setActive] = useState("dashboard")
   const [open, setOpen] = useState(false);
+  const [empSearch, setEmpSearch] = useState("")
+  const [reqSearch, setReqSearch] = useState("")
+  const [reqStatus, setReqStatus] = useState("")
+  const [taskSearch, setTaskSearch] = useState("")
+  const [taskStatus, setTaskStatus] = useState("")
+  const [taskDate, setTaskDate] = useState("")
   const [notifications, setNotifications] = useState([]);
   const [departments, setDepartments] = useState([])
   const [employees, setEmployees] = useState([])
@@ -20,8 +26,45 @@ export default function SuperAdminPanel() {
   const [showModal, setShowModal] = useState(false)
   const [showDeptModal, setShowDeptModal] = useState(false)
   const [showHRModal, setShowHRModal] = useState(false)
-
   const [loading, setLoading] = useState(false)
+  const [plan, setPlan] = useState("free") // default
+const [showPlanModal, setShowPlanModal] = useState(false)
+
+  const filteredEmployees = employees.filter(emp => {
+  if (!empSearch.trim()) return true
+
+  return (
+    emp.name.toLowerCase().includes(empSearch.toLowerCase()) ||
+    emp.email.toLowerCase().includes(empSearch.toLowerCase())
+  )
+})
+
+
+const filteredRequirements = requirements.filter(req => {
+  const matchSearch = req.title.toLowerCase().includes(reqSearch.toLowerCase())
+
+  const matchStatus =
+    reqStatus ? req.status === reqStatus : true
+
+  return matchSearch && matchStatus
+})
+
+const filteredTasks = tasks.filter(task => {
+  const matchSearch =
+    task.title.toLowerCase().includes(taskSearch.toLowerCase()) ||
+    task.assignedTo?.name?.toLowerCase().includes(taskSearch.toLowerCase())
+
+  const matchStatus =
+    taskStatus ? task.status === taskStatus : true
+
+  const matchDate =
+    taskDate
+      ? new Date(task.deadline).toLocaleDateString("en-IN") ===
+        new Date(taskDate).toLocaleDateString("en-IN")
+      : true
+
+  return matchSearch && matchStatus && matchDate
+})
 
 const [deptForm, setDeptForm] = useState({
   name: "",
@@ -49,6 +92,19 @@ const handleDeptChange = (e) => {
   })
 }
 
+const handleUpgrade = (type) => {
+
+  if (type === "monthly") {
+    alert("Redirect to Razorpay Monthly 💳")
+  }
+
+  if (type === "yearly") {
+    alert("Redirect to Razorpay Yearly 💳")
+  }
+
+  // later:
+  // call payment API
+}
 const handleCreateDepartment = async () => {
   try {
     await createDepartmentAPI(deptForm)
@@ -205,6 +261,14 @@ const handleStatusUpdate = async (id, status) => {
 
   return () => clearInterval(interval);
 }, []);
+useEffect(() => {
+  setEmpSearch("")
+  setReqSearch("")
+  setReqStatus("")
+  setTaskSearch("")
+  setTaskStatus("")
+  setTaskDate("")
+}, [active])
 
 useEffect(() => {
   const handleClick = () => setOpen(false);
@@ -223,7 +287,7 @@ useEffect(() => {
     if (active === "dashboard") {
       return (
         <>
-          <h1 className="text-2xl font-bold mb-6">Super Admin Dashboard</h1>
+          <h1 className="text-2xl font-bold mb-6">Admin Dashboard</h1>
 
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <StatCard title="Departments" value={departments.length} />
@@ -526,7 +590,22 @@ useEffect(() => {
         </button>
       </div>
 
-      {/* 🔥 TABLE */}
+      <div className="flex gap-3 mb-4">
+  <input
+    type="text"
+    placeholder="Search employee..."
+   value={empSearch}
+onChange={(e) => setEmpSearch(e.target.value)}
+    className="border p-2 rounded-lg"
+  />
+  <button
+    onClick={() => setEmpSearch("")}
+    className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-gray-500 transition"
+  >
+    Reset
+  </button>
+
+</div>
       <div className="bg-white p-6 rounded-2xl shadow">
   <table className="w-full text-left">
 
@@ -541,7 +620,7 @@ useEffect(() => {
     </thead>
 
     <tbody>
-      {employees.map((emp) => (
+      {filteredEmployees.map((emp) => (
         <tr key={emp._id} className="border-b">
           
           <td className="p-2">{emp.name}</td>
@@ -569,6 +648,11 @@ useEffect(() => {
     </tbody>
 
   </table>
+  {filteredEmployees.length === 0 && (
+  <p className="text-center text-gray-500 mt-4">
+    No employees found 😕
+  </p>
+)}
 </div>
       
       {showModal && (
@@ -646,43 +730,71 @@ useEffect(() => {
     </>
   )
 }
-    if (active === "requirements") {
-  return (
-    <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
 
-      {/* 🔥 HEADER */}
-      <div className="flex justify-between items-center">
+if (active === "requirements") {
+  return (
+    <>
+      {/* 🔥 Header */}
+      <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">Requirement Board</h1>
       </div>
+    <div className="flex gap-3 mb-4">
+  <input
+    type="text"
+    placeholder="Search requirement..."
+    value={reqSearch}
+onChange={(e) => setReqSearch(e.target.value)}
+    className="border p-2 rounded-lg"
+  />
 
-      {/* 🔥 TABLE CONTAINER */}
-      <div className="bg-white p-6 rounded-2xl shadow">
+  <select
+    value={reqStatus}
+onChange={(e) => setReqStatus(e.target.value)}
+    className="border p-2 rounded-lg"
+  >
+    <option value="">All</option>
+    <option value="pending">Pending</option>
+    <option value="approved">Approved</option>
+    <option value="rejected">Rejected</option>
+  </select>
 
-        <table className="w-full text-left border-separate border-spacing-y-2">
+  <button
+    onClick={() => {
+      setReqSearch("")
+      setReqStatus("")
+    }}
+    className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-gray-500 transition"
+  >
+    Reset
+  </button>
+</div>
+      {/* 🔥 Table */}
+      <div className="bg-white rounded-2xl shadow p-6">
 
+        <table className="w-full text-left">
           <thead>
             <tr className="border-b text-gray-600">
-              <th className="p-3">Title</th>
-              <th className="p-3">Raised By</th>
-              <th className="p-3">Status</th>
-              <th className="p-3 text-center">Action</th>
+              <th className="p-2">Title</th>
+              <th className="p-2">Raised By</th>
+              <th className="p-2">Status</th>
+              <th className="p-2 text-center">Action</th>
             </tr>
           </thead>
 
           <tbody>
-            {requirements.map((req) => (
+            {filteredRequirements.map((req) => (
               <tr
                 key={req._id}
                 className="border-b hover:bg-gray-50 transition"
               >
 
-                <td className="p-3 font-medium">{req.title}</td>
+                <td className="p-2 font-medium">{req.title}</td>
 
-                <td className="p-4">
+                <td className="p-2">
                   {req.raisedBy?.name || "—"}
                 </td>
 
-                <td className={`p-3 font-semibold ${
+                <td className={`p-2 font-semibold ${
                   req.status === "approved"
                     ? "text-green-600"
                     : req.status === "rejected"
@@ -692,54 +804,50 @@ useEffect(() => {
                   {req.status}
                 </td>
 
-                <td className="p-3 flex justify-center gap-2">
+                <td className="p-2">
+                  <div className="flex justify-center gap-2">
 
-                  {/* APPROVE */}
-<div className="flex gap-3">
-  <button
-    onClick={() => handleStatusUpdate(req._id, "approved")}
-    className={`px-4 py-2 rounded-full font-medium transition-all duration-300
-      ${
-        req.status === "approved"
-          ? "bg-green-500 text-white shadow-lg shadow-green-300 scale-105"
-          : "bg-gray-200 text-gray-700 hover:bg-green-100"
-      }`}
-  >
-    ✅ Approve
-  </button>
+                    {/* ✅ APPROVE */}
+                    <button
+                      onClick={() => handleStatusUpdate(req._id, "approved")}
+                      className={`px-3 py-1 rounded transition ${
+                        req.status === "approved"
+                          ? "bg-green-600 text-white"
+                          : "bg-gray-200 hover:bg-green-100"
+                      }`}
+                    >
+                      Approve
+                    </button>
 
-  <button
-    onClick={() => handleStatusUpdate(req._id, "rejected")}
-    className={`px-4 py-2 rounded-full font-medium transition-all duration-300
-      ${
-        req.status === "rejected"
-          ? "bg-red-500 text-white shadow-lg shadow-red-300 scale-105"
-          : "bg-gray-200 text-gray-700 hover:bg-red-100"
-      }`}
-  >
-    ❌ Reject
-  </button>
-</div>
+                    {/* ❌ REJECT */}
+                    <button
+                      onClick={() => handleStatusUpdate(req._id, "rejected")}
+                      className={`px-3 py-1 rounded transition ${
+                        req.status === "rejected"
+                          ? "bg-red-600 text-white"
+                          : "bg-gray-200 hover:bg-red-100"
+                      }`}
+                    >
+                      Reject
+                    </button>
 
+                  </div>
                 </td>
 
               </tr>
             ))}
           </tbody>
-
         </table>
 
-        {/* 🔥 EMPTY STATE */}
-        {requirements.length === 0 && (
+        {filteredRequirements.length === 0 && (
           <div className="text-center text-gray-500 py-6">
             No requirements available
           </div>
         )}
 
       </div>
-
-    </div>
-  );
+    </>
+  )
 }
 
  if (active === "tasks") {
@@ -750,6 +858,43 @@ useEffect(() => {
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold">Tasks Overview</h1>
       </div>
+      <div className="flex gap-3 mb-4">
+  <input
+    type="text"
+    placeholder="Search task..."
+   value={taskSearch}
+onChange={(e) => setTaskSearch(e.target.value)}
+    className="border p-2 rounded-lg"
+  />
+
+  <select
+    value={taskStatus}
+onChange={(e) => setTaskStatus(e.target.value)}
+    className="border p-2 rounded-lg"
+  >
+    <option value="">All Status</option>
+    <option value="pending">Pending</option>
+    <option value="in_progress">In Progress</option>
+    <option value="completed">Completed</option>
+  </select>
+
+  <input
+    type="date"
+    value={taskDate}
+onChange={(e) => setTaskDate(e.target.value)}
+    className="border p-2 rounded-lg"
+  />
+  <button
+    onClick={() => {
+      setTaskSearch("")
+      setTaskStatus("")
+      setTaskDate("")
+    }}
+    className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-gray-500 transition"
+  >
+    Reset
+  </button>
+</div>
 
       {/* 🔥 TABLE CONTAINER */}
       <div className="bg-white p-6 rounded-2xl shadow">
@@ -767,7 +912,7 @@ useEffect(() => {
           </thead>
 
           <tbody>
-            {tasks.map((task) => (
+            {filteredTasks.map((task) => (
               <tr
                 key={task._id}
                 className="border-b hover:bg-gray-50 transition"
@@ -812,11 +957,11 @@ useEffect(() => {
         </table>
 
         {/* 🔥 EMPTY STATE */}
-        {tasks.length === 0 && (
-          <div className="text-center text-gray-500 py-6">
-            No tasks available
-          </div>
-        )}
+        {filteredTasks.length === 0 && (
+  <p className="text-center text-gray-500 mt-4">
+    No employees found 😕
+  </p>
+)}
 
       </div>
 
@@ -845,8 +990,8 @@ useEffect(() => {
     <div className="min-h-screen flex bg-gray-100">
 
       {/* Sidebar */}
-      <div className="w-64 bg-gradient-to-b from-gray-900 to-gray-800 text-white p-6 shadow-xl">
-        <h2 className="text-xl font-bold mb-6">Super Admin</h2>
+      <div className="w-64 bg-linear-to-b from-gray-900 to-gray-800 text-white p-6 shadow-xl">
+        <h2 className="text-xl font-bold mb-6">Admin</h2>
 
         <nav className="space-y-2">
           <SidebarItem label="Dashboard" id="dashboard" setActive={setActive} />
@@ -860,11 +1005,111 @@ useEffect(() => {
       </div>
 
       {/* Content */}
-      <div className="flex-1 p-8 bg-gray-50 min-h-screen">
+<div className="flex-1 p-8 bg-gray-50 min-h-screen">
 
-  {/* 🔔 Notification Bell */}
-  <div className="flex justify-end mb-4 relative">
+  {/* TOP BAR (ONLY THIS) */}
+  <div className="flex justify-end items-center gap-4 mb-4">
 
+    {/* Upgrade Button */}
+    {showPlanModal && (
+  <div className="fixed inset-0 bg-black/70 flex justify-center items-center z-50">
+
+    <div className="bg-gray-900 text-white p-8 rounded-2xl w-225">
+
+      <h2 className="text-3xl font-bold text-center mb-8">
+        Upgrade Your Plan 🚀
+      </h2>
+
+      <div className="grid grid-cols-3 gap-6">
+
+        {/* FREE */}
+        <div className="bg-gray-800 p-6 rounded-2xl border border-gray-700">
+          <h3 className="text-xl font-bold mb-2">Free</h3>
+          <p className="text-3xl font-bold mb-4">₹0</p>
+
+          <ul className="text-sm space-y-2 text-gray-300">
+            <li>✔ Limited access</li>
+            <li>✔ Basic dashboard</li>
+            <li>✔ Limited notifications</li>
+          </ul>
+
+          <button
+            disabled
+            className="mt-5 w-full bg-gray-600 py-2 rounded-lg"
+          >
+            Current Plan
+          </button>
+        </div>
+
+        {/* MONTHLY */}
+        <div className="bg-gray-800 p-6 rounded-2xl border border-gray-700">
+          <h3 className="text-xl font-bold mb-2">Monthly</h3>
+          <p className="text-3xl font-bold mb-4">₹399</p>
+
+          <ul className="text-sm space-y-2 text-gray-300">
+            <li>✔ Unlimited employees</li>
+            <li>✔ Advanced dashboard</li>
+            <li>✔ Priority notifications</li>
+            <li>✔ Task analytics</li>
+          </ul>
+
+          <button
+            onClick={() => handleUpgrade("monthly")}
+            className="mt-5 w-full bg-blue-600 py-2 rounded-lg hover:bg-blue-700"
+          >
+            Choose Plan
+          </button>
+        </div>
+
+        {/* YEARLY (HIGHLIGHTED) */}
+        <div className="bg-linear-to-br from-purple-700 to-indigo-700 p-6 rounded-2xl border border-purple-500 scale-105">
+
+          <p className="text-xs bg-purple-500 px-2 py-1 rounded w-fit mb-2">
+            BEST VALUE
+          </p>
+
+          <h3 className="text-xl font-bold mb-2">Yearly</h3>
+          <p className="text-3xl font-bold mb-4">₹3999</p>
+
+          <ul className="text-sm space-y-2">
+            <li>✔ Everything in Monthly</li>
+            <li>✔ Faster performance</li>
+            <li>✔ Premium support</li>
+            <li>✔ Future features access</li>
+          </ul>
+
+          <button
+            onClick={() => handleUpgrade("yearly")}
+            className="mt-5 w-full bg-white text-black py-2 rounded-lg font-semibold"
+          >
+            Choose Plan
+          </button>
+        </div>
+
+      </div>
+
+      <div className="flex justify-end mt-6">
+        <button
+          onClick={() => setShowPlanModal(false)}
+          className="bg-gray-600 px-4 py-2 rounded-lg"
+        >
+          Close
+        </button>
+      </div>
+
+    </div>
+  </div>
+)}
+    <button
+      onClick={() => setShowPlanModal(true)}
+      className={`px-4 py-2 rounded-lg text-white ${
+        plan === "free" ? "bg-red-500" : "bg-green-600"
+      }`}
+    >
+      {plan === "free" ? "Upgrade Plan 🚀" : "Pro Plan ✅"}
+    </button>
+
+    {/* Bell Icon */}
     <div
       className="relative cursor-pointer"
       onClick={(e) => {
@@ -874,7 +1119,7 @@ useEffect(() => {
     >
       <span className="text-2xl">🔔</span>
 
-      {/* 🔴 unread count */}
+      {/* badge */}
       {notifications.filter(n => !n.isRead).length > 0 && (
         <span className="absolute -top-2 -right-2 bg-red-600 text-white text-xs px-1 rounded-full">
           {notifications.filter(n => !n.isRead).length}
@@ -884,7 +1129,6 @@ useEffect(() => {
       {/* dropdown */}
       {open && (
         <div className="absolute right-0 mt-2 w-72 bg-white shadow-lg rounded-lg max-h-80 overflow-y-auto z-50">
-
           {notifications.length === 0 && (
             <p className="p-3 text-gray-500">No notifications</p>
           )}
@@ -892,9 +1136,8 @@ useEffect(() => {
           {notifications.map(n => (
             <div
               key={n._id}
-             onClick={async (e) => {
+              onClick={async (e) => {
                 e.stopPropagation();
-
                 await markAsRead(n._id);
 
                 setNotifications(prev =>
@@ -905,14 +1148,8 @@ useEffect(() => {
                   )
                 );
 
-                // 🔥 navigation logic
-                if (n.type === "task_assigned") {
-                  setActive("tasks");
-                }
-
-                if (n.type.includes("requirement")) {
-                  setActive("requirements");
-                }
+                if (n.type === "task_assigned") setActive("tasks");
+                if (n.type.includes("requirement")) setActive("requirements");
               }}
               className={`p-3 border-b cursor-pointer ${
                 n.isRead ? "bg-gray-100" : "bg-white"
@@ -922,12 +1159,13 @@ useEffect(() => {
               <p className="text-xs text-gray-600">{n.message}</p>
             </div>
           ))}
-
         </div>
       )}
     </div>
+
   </div>
 
+  {/* MAIN CONTENT */}
   {renderContent()}
 
 </div>

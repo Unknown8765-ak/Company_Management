@@ -1,10 +1,10 @@
 import mongoose from "mongoose"
-import bcrypt from "bcrypt"
 import jwt from "jsonwebtoken"
 
 
 const userSchema = new mongoose.Schema(
 {
+  
   name: {
     type: String,
     required: true
@@ -23,8 +23,14 @@ const userSchema = new mongoose.Schema(
 
   role: {
     type: String,
-    enum: ["super_admin", "hr", "employee"],
+    enum: ["super_admin", "hr", "employee","admin"],
     default: "employee"
+  },
+
+  company: {
+  type: mongoose.Schema.Types.ObjectId,
+  ref: "Company",
+  required: true
   },
 
   department: {
@@ -52,21 +58,15 @@ const userSchema = new mongoose.Schema(
 
 
 
-// userSchema.pre("save", async function () {
-//     if(!this.isModified("password")) return;
-//    this.password = await bcrypt.hash(this.password ,10)
-// });
-
-// userSchema.methods.isPasswordCorrect  = async function (password) {
-//     return await bcrypt.compare(password , this.password)
-// }
 
 userSchema.methods.generateAccessToken = async function () {
     return jwt.sign(
         {
         _id : this._id,
         email : this.email,
-        name : this.name
+        name : this.name,
+        company: this.company,
+        role: this.role 
         },process.env.ACCESS_TOKEN_SECRET,
         
         {

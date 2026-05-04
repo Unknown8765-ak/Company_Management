@@ -15,9 +15,9 @@ const router = express.Router()
 router.post("/create-hr",verifyJWT, createHR)
 router.post("/create-employee",verifyJWT, createEmployee)
 
-router.get("/employees", getAllEmployees)
-router.get("/hrs", getAllHR)
-router.get("/employees/:id", getSingleEmployee)
+router.get("/employees",verifyJWT, getAllEmployees)
+router.get("/hrs", verifyJWT, getAllHR)
+router.get("/employees/:id", verifyJWT,getSingleEmployee)
 
 router.put("/update-employees/:id",verifyJWT, updateEmployee)
 router.delete("/delete-employee/:id", verifyJWT, deleteEmployee)

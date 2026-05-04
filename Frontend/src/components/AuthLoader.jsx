@@ -5,7 +5,10 @@ import { login, logout, stopLoading } from "../features/auth/authSlice"
 const AuthLoader = ({ children }) => {
   const dispatch = useDispatch()
   const API_URL = import.meta.env.VITE_API_URL;
+<<<<<<< HEAD
 
+=======
+>>>>>>> f25a6d8 (new commit)
   useEffect(() => {
     const loadUser = async () => {
       console.log("AUTH CHECK START 🚀")

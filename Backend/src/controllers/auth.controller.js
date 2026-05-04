@@ -27,30 +27,21 @@ const generateAccessAndRefereshTokens = async(userId) =>{
 
 const login = asyncHandler(async (req,res)=>{
 
-    // req body -> data
-    // email
-    //find the user
-    //password check
-    //access and referesh token
-    //send cookie
 
     const { email , password } = req.body
 
     if (!email || !password) {
         throw new ApiError(409, "Email and password is required");
     }
-
     const existedUser = await User.findOne({email})
     if (!existedUser) {
-        throw new ApiError(409 , "user not found");
+        throw new ApiError(404 , "user not found");
     }
     // console.log(existedUser)
-
-    const passwordCorrect = existedUser.password
-
-    if(!passwordCorrect){
-        throw new ApiError(400 , "Unauthorized User")
-    }
+    
+    if(password !== existedUser.password){
+    throw new ApiError(401 , "Invalid credentials")
+}
 
     const { accessToken , refreshToken } = await generateAccessAndRefereshTokens(existedUser._id)
 //     console.log("ACCESS", accessToken)
@@ -61,16 +52,16 @@ const login = asyncHandler(async (req,res)=>{
 
     const options  = {
         httpOnly : true,
-        secure : true,
-        sameSite : "none",
+        secure : false,
+        sameSite : "lax",
         maxAge: 7 * 24 * 60 * 60 * 1000
     }
 
-    return res.status(201)
+    return res.status(200)
     .cookie("accessToken" , accessToken , {...options , maxAge : 15 * 60 * 1000})
     .cookie("refreshToken" , refreshToken , options)
     .json(
-        new ApiResponse(201 , 
+        new ApiResponse(200 , 
             {
                 user : loggedInUser , accessToken , refreshToken
 
@@ -94,8 +85,8 @@ const logout = asyncHandler(async (req, res) => {
 
   const options = {
     httpOnly: true,
-    secure: true,
-    sameSite: "none",
+    secure: false,
+    sameSite: "lax",
   };
 
   return res

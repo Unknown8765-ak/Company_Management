@@ -5,7 +5,8 @@ import AuthLoader from './components/AuthLoader'
 import Login from './pages/Login'
 import HRDashboard from './pages/HRDashboard'
 import EmployeeDashboard from './pages/EmployeeDashboard'
-import SuperAdminPanel from './pages/AdminDashboard'
+import AdminPanel from './pages/AdminDashboard'
+import SuperAdminDashboard from './pages/SuperAdminDashboard'
 import Home from './pages/Home'
 
 function App() {
@@ -20,7 +21,9 @@ function App() {
       <Route element={<ProtectedRoute />}>
         <Route path="/hr/dashboard" element={<HRDashboard />} />
         <Route path="/employee/dashboard" element={<EmployeeDashboard />} />
-        <Route path="/admin/dashboard" element={<SuperAdminPanel />} />
+        <Route path="/admin/dashboard" element={<AdminPanel />} />
+      <Route path="/superadmin/dashboard" element={<SuperAdminDashboard />} />
+        
       </Route>
     </Routes>
     </AuthLoader>

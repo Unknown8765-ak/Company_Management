@@ -19,6 +19,10 @@ import { getNotifications , markAsRead } from "../features/notification/notifica
 export default function HRDashboard() {
 
   const { user } = useSelector(state => state.auth)
+  const [search, setSearch] = useState("")
+const [statusFilter, setStatusFilter] = useState("")
+const [dateFilter, setDateFilter] = useState("")
+const [employeeSearch, setEmployeeSearch] = useState("")
   const [active, setActive] = useState("dashboard")
   const [profile, setProfile] = useState(null)
   const [open, setOpen] = useState(false);
@@ -32,6 +36,39 @@ export default function HRDashboard() {
   const [showModal, setShowModal] = useState(false)
   const [showTaskModal, setShowTaskModal] = useState(false)
   const [loading, setLoading] = useState(true)
+  const filteredTasks = tasks.filter(task => {
+
+  const matchSearch =
+    task.title.toLowerCase().includes(search.toLowerCase()) ||
+    task.assignedTo?.name?.toLowerCase().includes(search.toLowerCase())
+
+  const matchStatus =
+    statusFilter ? task.status === statusFilter : true
+
+  const matchDate =
+    dateFilter
+      ? new Date(task.deadline).toLocaleDateString("en-IN") ===
+        new Date(dateFilter).toLocaleDateString("en-IN")
+      : true
+
+  return matchSearch && matchStatus && matchDate
+})
+
+const filteredRequirements = requirements.filter(req => {
+
+  const matchSearch =
+    req.title.toLowerCase().includes(search.toLowerCase())
+
+  const matchStatus =
+    statusFilter ? req.status === statusFilter : true
+
+  return matchSearch && matchStatus
+})
+
+const filteredEmployees = employees.filter(emp =>
+  emp.name.toLowerCase().includes(employeeSearch.toLowerCase()) ||
+  emp.email.toLowerCase().includes(employeeSearch.toLowerCase())
+)
   
   const [formData, setFormData] = useState({
   name: "",
@@ -286,7 +323,26 @@ useEffect(() => {
           + Add Employee
         </button>
       </div>
+      <div className="flex justify-items-center items-center mb-4">
 
+  <input
+    type="text"
+    placeholder="Search employee by name/email..."
+    value={employeeSearch}
+    onChange={(e) => setEmployeeSearch(e.target.value)}
+    className="border p-2 m-3.5 rounded-lg w-64 focus:outline-none focus:ring-2 focus:ring-blue-500"
+  />
+  <button
+    onClick={() => {
+      setEmployeeSearch("")
+    }}
+    className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+  >
+    Reset
+  </button>
+
+</div>
+    
       {/* 🔥 TABLE */}
       <div className="bg-white p-6 rounded-2xl shadow">
         <table className="w-full text-left">
@@ -300,7 +356,7 @@ useEffect(() => {
           </thead>
 
           <tbody>
-            {employees.map(emp => (
+            {filteredEmployees.map(emp => (
               <tr key={emp._id} className="border-b">
                 <td className="p-2">{emp.name}</td>
                 <td className="p-2">{emp.role}</td>
@@ -316,6 +372,11 @@ useEffect(() => {
           </tbody>
 
         </table>
+        {filteredEmployees.length === 0 && employeeSearch && (
+  <p className="text-center text-gray-500 mt-4">
+    No employees found 😕
+  </p>
+)}
       </div>
 
       
@@ -398,12 +459,12 @@ useEffect(() => {
   )
 }
 
+
 if (active === "tasks") {
   return (
-    <div className="space-y-6">
-
-    
-      <div className="flex justify-between items-center">
+    <>
+      {/* 🔥 Header */}
+      <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">Tasks</h1>
 
         <button
@@ -413,31 +474,76 @@ if (active === "tasks") {
           + Add Task
         </button>
       </div>
+      <div className="flex flex-wrap gap-3 mb-4">
 
-      {/* 🔥 TABLE CONTAINER */}
-      <div className="bg-white p-6 rounded-2xl shadow">
+  <input
+    type="text"
+    placeholder="Search task..."
+    value={search}
+    onChange={(e) => setSearch(e.target.value)}
+    className="border p-2 rounded-lg"
+  />
 
-        <table className="w-full text-left border-separate border-spacing-y-2">
+  <select
+    value={statusFilter}
+    onChange={(e) => setStatusFilter(e.target.value)}
+    className="border p-2 rounded-lg"
+  >
+    <option value="">All Status</option>
+    <option value="pending">Pending</option>
+    <option value="in_progress">In Progress</option>
+    <option value="completed">Completed</option>
+  </select>
+
+  <input
+    type="date"
+    value={dateFilter}
+    onChange={(e) => setDateFilter(e.target.value)}
+    className="border p-2 rounded-lg"
+  />
+
+  <button
+    onClick={() => {
+      setSearch("")
+      setStatusFilter("")
+      setDateFilter("")
+    }}
+      className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+
+  >
+    Reset
+  </button>
+
+</div>
+
+      {/* 🔥 Table */}
+      <div className="bg-white rounded-2xl shadow p-6">
+        <table className="w-full text-left">
           <thead>
             <tr className="border-b text-gray-600">
-              <th className="p-3">Title</th>
-              <th className="p-3">Assigned To</th>
-              <th className="p-3">Status</th>
-              <th className="p-3">Deadline</th>
-              <th className="p-3">Action</th>
+              <th className="p-2">Task</th>
+              <th className="p-2">Assigned</th>
+              <th className="p-2">Deadline</th>
+              <th className="p-2">Status</th>
+              <th className="p-2">Action</th>
             </tr>
           </thead>
 
           <tbody>
-            {tasks.map(task => (
+            {filteredTasks.map(task => (
               <tr key={task._id} className="border-b hover:bg-gray-50 transition">
 
-                <td className="p-3 font-medium">{task.title}</td>
+                <td className="p-2 font-medium">{task.title}</td>
 
-                <td className="p-3">
+                <td className="p-2">
                   {task.assignedTo?.name || "—"}
                 </td>
-                <td className={`p-3 font-semibold ${
+
+                <td className="p-2">
+                  {new Date(task.deadline).toLocaleDateString("en-IN")}
+                </td>
+
+                <td className={`p-2 font-semibold ${
                   task.status === "completed"
                     ? "text-green-600"
                     : task.status === "in_progress"
@@ -447,33 +553,157 @@ if (active === "tasks") {
                   {task.status}
                 </td>
 
-                <td className="p-3">
-                  {new Date(task.deadline).toLocaleDateString("en-IN")}
-                </td>
+                <td className="p-2 space-x-2">
 
-                <td className="p-3">
                   <button
-                    className="bg-red-500 text-white px-3 py-1 rounded-lg hover:bg-red-600 transition"
                     onClick={() => handleDeleteTask(task._id)}
+                    className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600"
                   >
                     Delete
                   </button>
+
                   <button
-                  onClick={() => setSelectedTask(task)}
-                  className="bg-blue-500 text-white px-3 py-1 rounded-xl m-1"
-                >
-                  View
-                </button>
+                    onClick={() => setSelectedTask(task)}
+                    className="bg-blue-500 text-white px-3 py-1 rounded"
+                  >
+                    View
+                  </button>
+
                 </td>
 
               </tr>
             ))}
           </tbody>
-
         </table>
+            {filteredTasks.length === 0 && (
+  <p className="text-center text-gray-500 mt-4">
+    No tasks found 😕
+  </p>
+)}
+        {/* 🔥 Selected Task Panel */}
+        {selectedTask && (
+          <div className="mt-6 bg-gray-50 p-5 rounded-2xl border shadow">
+
+            <h3 className="font-bold mb-2">
+              Task: {selectedTask.title}
+            </h3>
+
+            <p className="mb-2">Progress: {progress}%</p>
+
+            {/* 📁 Attachments */}
+            {selectedTask.attachments?.length > 0 && (
+              <div className="mb-4">
+                <h4 className="font-semibold mb-2">Attachments 📎</h4>
+
+                {selectedTask.attachments.map((file, i) => (
+                  <a
+                    key={i}
+                    href={file.fileUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="block text-blue-600 underline"
+                  >
+                    {file.fileName}
+                  </a>
+                ))}
+              </div>
+            )}
+
+            {/* 🔥 Progress Slider */}
+            <input
+              type="range"
+              min="0"
+              max="100"
+              value={progress}
+              onChange={(e) => setProgress(Number(e.target.value))}
+              className="w-full"
+            />
+
+            {/* 🔥 Message */}
+            <textarea
+              placeholder="Write update..."
+              value={message}
+              onChange={(e) => setMessage(e.target.value)}
+              className="w-full border p-2 mt-3 rounded"
+            />
+
+            {/* 🔥 Buttons */}
+            <div className="mt-3 space-x-2">
+
+              <button
+                onClick={handleTaskUpdate}
+                className="bg-green-600 hover:bg-green-700 text-white px-4 py-1 rounded"
+              >
+                Submit
+              </button>
+
+              <button
+                onClick={() => setSelectedTask(null)}
+                className="bg-gray-400 text-white px-3 py-1 rounded"
+              >
+                Cancel
+              </button>
+
+            </div>
+
+            {/* 💬 Comments */}
+            <div className="mt-6">
+              <h3 className="font-bold mb-2">Comments 💬</h3>
+
+              <div className="max-h-40 overflow-y-auto space-y-2 mb-2">
+
+                {selectedTask.comments?.length === 0 && (
+                  <p className="text-gray-500 text-sm">No comments yet</p>
+                )}
+
+                {selectedTask.comments?.map((c, i) => (
+                  <div key={i} className="bg-white p-3 rounded shadow-sm">
+
+                    <p className="text-sm font-semibold text-indigo-600">
+                      {c.user?.name || "User"}
+                    </p>
+
+                    <p className="text-sm">{c.message}</p>
+
+                    <p className="text-xs text-gray-500">
+                      {new Date(c.createdAt).toLocaleString("en-IN")}
+                    </p>
+
+                  </div>
+                ))}
+
+              </div>
+
+              {/* ✍️ Add Comment */}
+              <div className="flex gap-2">
+
+                <input
+                  type="text"
+                  value={commentText}
+                  onChange={(e) => setCommentText(e.target.value)}
+                  placeholder="Write a comment..."
+                  className="flex-1 border p-2 rounded"
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") handleAddComment()
+                  }}
+                />
+
+                <button
+                  onClick={handleAddComment}
+                  className="bg-blue-600 text-white px-3 rounded"
+                >
+                  Send
+                </button>
+
+              </div>
+
+            </div>
+
+          </div>
+        )}
       </div>
 
-      {/* 🔥 MODAL */}
+      {/* 🔥 Modal (UNCHANGED LOGIC) */}
       {showTaskModal && (
         <div className="fixed inset-0 bg-black/40 flex justify-center items-center z-50">
 
@@ -484,7 +714,7 @@ if (active === "tasks") {
             <input
               name="title"
               placeholder="Title"
-              className="w-full border rounded-lg p-2 mb-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full border p-2 mb-2"
               value={taskData.title}
               onChange={handleTaskChange}
             />
@@ -492,19 +722,18 @@ if (active === "tasks") {
             <textarea
               name="description"
               placeholder="Description"
-              className="w-full border rounded-lg p-2 mb-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full border p-2 mb-2"
               value={taskData.description}
               onChange={handleTaskChange}
             />
 
             <select
               name="assignedTo"
-              className="w-full border rounded-lg p-2 mb-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full border p-2 mb-2"
               value={taskData.assignedTo}
               onChange={handleTaskChange}
             >
               <option value="">Select Employee</option>
-
               {employees.map(emp => (
                 <option key={emp._id} value={emp._id}>
                   {emp.name}
@@ -515,10 +744,11 @@ if (active === "tasks") {
             <input
               type="date"
               name="deadline"
-              className="w-full border rounded-lg p-2 mb-4 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full border p-2 mb-2"
               value={taskData.deadline}
               onChange={handleTaskChange}
             />
+
             <input
               type="file"
               accept=".pdf"
@@ -535,14 +765,14 @@ if (active === "tasks") {
 
               <button
                 onClick={() => setShowTaskModal(false)}
-                className="px-3 py-1 bg-gray-300 rounded-lg hover:bg-gray-400"
+                className="bg-gray-300 px-3 py-1 rounded"
               >
                 Cancel
               </button>
 
               <button
                 onClick={handleCreateTask}
-                className="px-4 py-1 bg-green-600 text-white rounded-lg hover:bg-green-700"
+                className="bg-green-600 text-white px-3 py-1 rounded"
               >
                 Create
               </button>
@@ -552,8 +782,8 @@ if (active === "tasks") {
           </div>
         </div>
       )}
-    </div>
-  );
+    </>
+  )
 }
     if (active === "reports") {
   return (
@@ -562,6 +792,28 @@ if (active === "tasks") {
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold">Requirement</h1>
       </div>
+      <div className="flex gap-3 mb-4">
+
+  <input
+    type="text"
+    placeholder="Search requirement..."
+    value={search}
+    onChange={(e) => setSearch(e.target.value)}
+    className="border p-2 rounded-lg"
+  />
+
+  <select
+    value={statusFilter}
+    onChange={(e) => setStatusFilter(e.target.value)}
+    className="border p-2 rounded-lg"
+  >
+    <option value="">All</option>
+    <option value="pending">Pending</option>
+    <option value="approved">Approved</option>
+    <option value="rejected">Rejected</option>
+  </select>
+
+</div>
 
       {/* 🔥 TABLE CONTAINER */}
       <div className="bg-white p-6 rounded-2xl shadow">
@@ -579,7 +831,7 @@ if (active === "tasks") {
           </thead>
 
           <tbody>
-            {requirements.map(req => (
+            {filteredRequirements.map(req => (
               <tr
                 key={req._id}
                 className="border-b hover:bg-gray-50 transition"
@@ -626,8 +878,9 @@ if (active === "tasks") {
 
         </table>
 
+
         {/* 🔥 EMPTY STATE */}
-        {requirements.length === 0 && (
+        {filteredRequirements.length === 0 && (
           <div className="text-center text-gray-500 py-6">
             No reports available
           </div>
@@ -649,6 +902,7 @@ if (active === "tasks") {
             <Field label="Email" value={profile?.email} />
             <Field label="Department" value={profile?.department?.name} />
             <Field label="Role" value={profile?.role} />
+            <Field label="Company" value={profile?.company} />
             <Field label="DOB" value={new Date(profile?.dob).toLocaleDateString("en-IN")}/>
           </div>
         </>
@@ -659,7 +913,6 @@ if (active === "tasks") {
   return (
    <div className="flex min-h-screen bg-linear-to-br from-gray-100 to-gray-200">
 
-      {/* Sidebar */}
       <div className="w-64 bg-linear-to-b from-gray-900 via-gray-800 to-gray-900 
 text-white p-5 shadow-2xl">
 

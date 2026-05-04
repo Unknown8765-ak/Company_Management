@@ -17,6 +17,12 @@ const notificationSchema = new mongoose.Schema({
       "requirement_rejected",
       "requirement_forwarded",
       "task_comment",
+       // 🔥 ADD THESE
+  "leave_applied",
+  "leave_approved",
+  "leave_rejected",
+  "salary_generated",
+"salary_paid"
     ],
     required: true
   },
@@ -33,6 +39,11 @@ const notificationSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: "User"
   },
+  company: {
+  type: mongoose.Schema.Types.ObjectId,
+  ref: "Company",
+  required: true
+},
 
   isRead: {
     type: Boolean,

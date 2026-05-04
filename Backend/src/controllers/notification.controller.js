@@ -1,12 +1,14 @@
 import {Notification} from "../models/notification.model.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
+import { ApiError } from "../utils/ApiError.js";
 
 const getMyNotifications = asyncHandler(async (req, res) => {
 
   const notifications = await Notification.find({
-    userId: req.user._id
-  }).sort({ createdAt: -1 });
+  userId: req.user._id,
+  company: req.user.company // 🔥 ADD THIS
+}).sort({ createdAt: -1 });
 
   return res.status(200).json(
     new ApiResponse(200, notifications, "Notifications fetched")
@@ -17,7 +19,10 @@ const markNotificationAsRead = asyncHandler(async (req, res) => {
 
   const { id } = req.params;
 
-  const notification = await Notification.findById(id);
+  const notification = await Notification.findOne({
+  _id: id,
+  company: req.user.company // 🔥 ADD THIS
+});
 
   if (!notification) {
     throw new ApiError(404, "Notification not found");

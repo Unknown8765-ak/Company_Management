@@ -11,7 +11,7 @@ const createHR = asyncHandler(async (req, res) => {
     if(!req.user){
 throw new ApiError(401,"Unauthorized request")
 }
-    if(req.user.role !== "super_admin"){
+    if(req.user.role !== "admin"){
         throw new ApiError(403, "Only Super Admin can create HR")
     }
 
@@ -26,7 +26,7 @@ throw new ApiError(401,"Unauthorized request")
     if(existingUser){
         throw new ApiError(409, "User already exists")
     }
-    const departmentData = await Department.findOne({ name: department })
+    const departmentData = await Department.findOne({ name: department,company: req.user.company })
     console.log(departmentData._id);
     console.log(departmentData);
     
@@ -40,7 +40,8 @@ throw new ApiError(401,"Unauthorized request")
         department : departmentData._id,
         dob,
         role: "hr",
-        createdBy: req.user._id
+        createdBy: req.user._id,
+        company: req.user.company
     })
     console.log(hr._id)
     departmentData.members.push(hr._id)
@@ -59,7 +60,7 @@ throw new ApiError(401,"Unauthorized request")
 
 const createEmployee = asyncHandler(async (req, res) => {
 
-    if(!["hr", "super_admin"].includes(req.user.role)){
+    if(!["hr", "admin"].includes(req.user.role)){
         throw new ApiError(403, "Not allowed")
     }
 
@@ -74,7 +75,7 @@ const createEmployee = asyncHandler(async (req, res) => {
     if(existingUser){
         throw new ApiError(409, "User already exists")
     }
-    const departmentData = await Department.findOne({ name: department })
+    const departmentData = await Department.findOne({ name: department,company: req.user.company })
     console.log(departmentData);
     console.log(departmentData._id);
     
@@ -88,7 +89,8 @@ const createEmployee = asyncHandler(async (req, res) => {
         department : departmentData._id,
         dob,
         role: "employee",
-        createdBy: req.user._id
+        createdBy: req.user._id,
+        company: req.user.company
     })
     departmentData.members.push(employee._id)
     departmentData.totalEmployees += 1
@@ -110,7 +112,7 @@ Get All Employees
 
 const getAllEmployees = asyncHandler(async (req, res) => {
 
-    const employees = await User.find({ role: "employee" })
+    const employees = await User.find({ role: "employee",company: req.user.company })
     .populate("department", "name")
 
     return res
@@ -121,7 +123,7 @@ const getAllEmployees = asyncHandler(async (req, res) => {
 
 const getAllHR = asyncHandler(async (req, res) => {
 
-    const employees = await User.find({ role: "hr" })
+    const employees = await User.find({ role: "hr",company: req.user.company })
     .populate("department", "name")
 
     return res
@@ -142,7 +144,8 @@ const getSingleEmployee = asyncHandler(async (req, res) => {
 
     const { id } = req.params
 
-    const employee = await User.findById(id)
+    const employee = await User.findOne({_id: id,
+    company: req.user.company})
     .populate("department", "name")
 
     if(!employee){
@@ -164,12 +167,15 @@ Update Employee
 */
 
 const updateEmployee = asyncHandler(async (req, res) => {
-    if(!["hr", "super_admin"].includes(req.user.role)){
+    if(!["hr", "admin"].includes(req.user.role)){
         throw new ApiError(403, "Not allowed")
     }
     const { id } = req.params
 
-    const employee = await User.findById(id)
+    const employee = await User.findOne({
+    _id: id,
+    company: req.user.company
+})
 
     if(!employee){
         throw new ApiError(404, "Employee not found")
@@ -181,8 +187,8 @@ const updateEmployee = asyncHandler(async (req, res) => {
     // department change hua
     if(newDepartment && oldDepartment.toString() !== newDepartment){
 
-        await Department.findByIdAndUpdate(
-            oldDepartment,
+        await Department.findOneAndUpdate(
+            { _id: oldDepartment, company: req.user.company },
             {
                 $pull: { members: employee._id },
                 $inc: { totalEmployees: -1 }
@@ -220,26 +226,28 @@ Delete Employee
 
 const deleteEmployee = asyncHandler(async (req, res) => {
     
-    if(!["hr", "super_admin"].includes(req.user.role)){
+    if(!["hr", "admin"].includes(req.user.role)){
         throw new ApiError(403, "Not allowed")
     }
 
     const { id } = req.params
 
-    const employee = await User.findById(id)
-
+    const employee = await User.findOne({
+    _id: id,
+    company: req.user.company
+})
     if(!employee){
         throw new ApiError(404, "Employee not found")
     }
 
     // department update
-    await Department.findByIdAndUpdate(
-        employee.department,
-        {
-            $pull: { members: employee._id },
-            $inc: { totalEmployees: -1 }
-        }
-    )
+    await Department.findOneAndUpdate(
+  { _id: employee.department, company: req.user.company },
+  {
+    $pull: { members: employee._id },
+    $inc: { totalEmployees: -1 }
+  }
+)
 
     await employee.deleteOne()
 

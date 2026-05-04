@@ -10,7 +10,7 @@ import { uploadoncloudinary } from "../utils/cloudinary.js"
 
 const createTask = asyncHandler(async (req,res)=>{
 
-    if(!["hr","super_admin"].includes(req.user.role)){
+    if(!["hr","admin"].includes(req.user.role)){
         throw new ApiError(403,"Not allowed to create task")
     }
 
@@ -22,12 +22,21 @@ const createTask = asyncHandler(async (req,res)=>{
     if (!assignedTo) {
         throw new ApiError(400, "Please select employee")
     }
-
-    const employee = await User.findById(assignedTo)
-
+    if (!req.user.company) {
+    throw new ApiError(404,"company is required")
+}
+   const employee = await User.findOne({
+  _id: assignedTo,
+  company: req.user.company
+})
     if(!employee){
-        throw new ApiError(400,"employee not found")
-    }
+  throw new ApiError(400,"employee not found")
+}
+
+if(employee.company.toString() !== req.user.company.toString()){
+  throw new ApiError(403,"Employee belongs to different company")
+}
+
     const hr = await User.findById(req.user._id)
 
     if (String(hr.department) !== String(employee.department)) {
@@ -40,7 +49,8 @@ const createTask = asyncHandler(async (req,res)=>{
         assignedTo,
         assignedBy: req.user._id,
         deadline,
-        status: "pending"
+        status: "pending",
+         company: req.user.company
     })
     // console.log("task :", task)
 
@@ -62,7 +72,8 @@ const createTask = asyncHandler(async (req,res)=>{
     title: "New Task Assigned",
     message: `You got a new task: ${title}`,
     relatedId: task._id,
-    createdBy: req.user._id
+    createdBy: req.user._id,
+    company: req.user.company
     });
 
     const populatedTask = await Task.findById(task._id)
@@ -81,7 +92,9 @@ const createTask = asyncHandler(async (req,res)=>{
 
 const assignTask = asyncHandler(async (req,res)=>{
     const { taskId, userIds } = req.body
-    const task = await Task.findById(taskId)
+    const task = await Task.findOne({ 
+        _id: taskId,
+        company: req.user.company})
     if(!task){
         throw new ApiError(404,"Task not found")
     }
@@ -99,15 +112,15 @@ const getAllTasks = asyncHandler(async (req,res)=>{
 
     let tasks
 
-    if(["hr","super_admin"].includes(req.user.role)){
-        tasks = await Task.find()
+    if(["hr","admin"].includes(req.user.role)){
+        tasks = await Task.find({company: req.user.company})
         .populate("assignedTo","name email")
         .populate("assignedBy","name")
         .populate("comments.user", "name")
         .populate("updates.updatedBy", "name")
     } 
     else {
-        tasks = await Task.find({ assignedTo: req.user._id })
+        tasks = await Task.find({ assignedTo: req.user._id,company: req.user.company })
         .populate("assignedTo","name email")
         .populate("assignedBy","name")
     }
@@ -131,7 +144,8 @@ const getEmployeeTasks = asyncHandler(async (req,res)=>{
     const userId = req.user._id
 
     const tasks = await Task.find({
-        assignedTo:userId
+        assignedTo: userId,
+  company: req.user.company
     })
     .populate("assignedBy","name")
     .populate("comments.user","name")
@@ -151,7 +165,10 @@ const addComment = asyncHandler(async (req, res) => {
     throw new ApiError(400, "Comment message required");
   }
   console.log(message)
-  const task = await Task.findById(req.params.id);
+  const task = await Task.findOne({ 
+    _id: req.params.id,
+    company: req.user.company
+});
 
   if (!task) {
     throw new ApiError(404, "Task not found");
@@ -181,7 +198,8 @@ const addComment = asyncHandler(async (req, res) => {
     title: "New Comment",
     message: `${req.user.name} commented on task`,
     relatedId: task._id,
-    createdBy: req.user._id
+    createdBy: req.user._id,
+    company: req.user.company
   });
 
   return res.status(200).json(
@@ -196,7 +214,9 @@ const addTaskUpdate = asyncHandler(async (req,res)=>{
     const taskId = req.params.id
     const {message,progress } = req.body
 
-    const task = await Task.findById(taskId)
+    const task = await Task.findOne({
+        _id: taskId,
+    company: req.user.company})
 
     if(!task){
         throw new ApiError(404,"Task not found")
@@ -232,7 +252,8 @@ const addTaskUpdate = asyncHandler(async (req,res)=>{
         title: "New Task Update",
         message: `${message} (${progress}%)`,
         relatedId: task._id,
-        createdBy: req.user._id
+        createdBy: req.user._id,
+        company: req.user.company
         });
 
     if(!notification){
@@ -254,10 +275,15 @@ Delete Task
 */
 
 const deleteTask = asyncHandler(async (req,res)=>{
-
+    if(!["hr","admin"].includes(req.user.role)){
+        throw new ApiError(403,"Not allowed to create task")
+    }
     const { id } = req.params
 
-    const task = await Task.findByIdAndDelete(id)
+    const task = await Task.findOneAndDelete({
+         _id: id,
+    company: req.user.company
+    })
 
     if(!task){
         throw new ApiError(404,"Task not found")

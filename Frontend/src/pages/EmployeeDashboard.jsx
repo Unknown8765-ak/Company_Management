@@ -64,7 +64,8 @@ export default function EmployeePanel() {
     try {
 
       const res = await getMyRequirementsAPI()
-      console.log(res.data)
+      console.log("DATA : ",res.data)
+      console.log("RES : ",res)
       setRequirements(res.data)
     } catch (err) {
       console.log(err.message)
@@ -504,6 +505,10 @@ const renderContent = () => {
             <ProfileField
               label="Role"
               value={employee?.role}
+            />
+            <ProfileField
+              label="Company"
+              value={employee?.company}
             />
 
             <ProfileField

@@ -8,7 +8,12 @@ required:true,
 unique:true
 },
 
-description:{
+company: {
+  type: mongoose.Schema.Types.ObjectId,
+  ref: "Company"
+},
+
+    description:{
 type:String
 },
 
