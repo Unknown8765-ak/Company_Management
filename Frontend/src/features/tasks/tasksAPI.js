@@ -1,10 +1,7 @@
 // src/features/tasks/taskAPI.js
 
 const API_BASE_URL = "https://company-management-5yta.onrender.com"
-<<<<<<< HEAD
-=======
 
->>>>>>> f25a6d8 (new commit)
 
 
 const createTaskAPI = async (data, id) => {
