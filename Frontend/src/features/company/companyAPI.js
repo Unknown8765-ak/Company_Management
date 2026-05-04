@@ -1,11 +1,11 @@
 
 
-const API_BASE_URL = "http://localhost:8000/api/v1/company"
+const API_BASE_URL = "https://company-management-5yta.onrender.com"
 
 // 🔥 CREATE COMPANY
 const createCompany = async (data) => {
   try {
-    const res = await fetch(`${API_BASE_URL}/`, {
+    const res = await fetch(`${API_BASE_URL}/api/v1/company/`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
@@ -30,7 +30,7 @@ const createCompany = async (data) => {
 // 🔥 GET ALL COMPANIES
 const getCompanies = async () => {
   try {
-    const res = await fetch(`${API_BASE_URL}/`,{
+    const res = await fetch(`${API_BASE_URL}/api/v1/company/`,{
        credentials: "include"
     });
 
@@ -52,7 +52,7 @@ const getCompanies = async () => {
   try {
     if (!id) throw { message: "Company ID is required" };
 
-    const res = await fetch(`${API_BASE_URL}/${id}`,{
+    const res = await fetch(`${API_BASE_URL}/api/v1/company/${id}`,{
        credentials: "include"
     });
 
@@ -74,7 +74,7 @@ const updateCompany = async (id, data) => {
   try {
     if (!id) throw { message: "Company ID is required" };
 
-    const res = await fetch(`${API_BASE_URL}/${id}`, {
+    const res = await fetch(`${API_BASE_URL}/api/v1/company/${id}`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json"
@@ -102,7 +102,7 @@ const deleteCompany = async (id) => {
   try {
     if (!id) throw { message: "Company ID is required" };
 
-    const res = await fetch(`${API_BASE_URL}/${id}`, {
+    const res = await fetch(`${API_BASE_URL}/api/v1/company/${id}`, {
       method: "DELETE",
        credentials: "include"
     });
@@ -122,7 +122,7 @@ const deleteCompany = async (id) => {
 
 const createContactRequestAPI = async (payload) => {
   try {
-    const res = await fetch(`${API_BASE_URL}/demo-request`, {
+    const res = await fetch(`${API_BASE_URL}/api/v1/company/demo-request`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
