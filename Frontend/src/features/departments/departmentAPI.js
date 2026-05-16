@@ -26,9 +26,6 @@ export const createDepartmentAPI = async (data) => {
 }
 
 
-// ----------------------------
-// Get All Departments
-// ----------------------------
 export const getDepartmentsAPI = async () => {
   try {
     const response = await fetch(`${API_BASE_URL}/api/v1/departments/departments`, {
@@ -50,9 +47,6 @@ export const getDepartmentsAPI = async () => {
 }
 
 
-// ----------------------------
-// Update Department
-// ----------------------------
 export const updateDepartmentAPI = async (id, data) => {
   try {
     const response = await fetch(`${API_BASE_URL}/api/v1/departments/department/${id}`, {
@@ -78,9 +72,6 @@ export const updateDepartmentAPI = async (id, data) => {
 }
 
 
-// ----------------------------
-// Delete Department
-// ----------------------------
 export const deleteDepartmentAPI = async (id) => {
   try {
     const response = await fetch(`${API_BASE_URL}/api/v1/departments/delete-department/${id}`, {
@@ -102,9 +93,6 @@ export const deleteDepartmentAPI = async (id) => {
 }
 
 
-// ----------------------------
-// Add Member to Department
-// ----------------------------
 export const addMemberToDepartmentAPI = async (data) => {
   try {
     const response = await fetch(`${API_BASE_URL}/api/v1/departments/department/add-member`, {
@@ -130,9 +118,6 @@ export const addMemberToDepartmentAPI = async (data) => {
 }
 
 
-// ----------------------------
-// Get Department Analytics
-// ----------------------------
 export const getDepartmentAnalyticsAPI = async () => {
   try {
     const response = await fetch(`${API_BASE_URL}/api/v1/departments/department/analytics`, {

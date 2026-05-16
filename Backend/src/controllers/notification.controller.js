@@ -7,7 +7,7 @@ const getMyNotifications = asyncHandler(async (req, res) => {
 
   const notifications = await Notification.find({
   userId: req.user._id,
-  company: req.user.company // 🔥 ADD THIS
+  company: req.user.company 
 }).sort({ createdAt: -1 });
 
   return res.status(200).json(
@@ -21,7 +21,7 @@ const markNotificationAsRead = asyncHandler(async (req, res) => {
 
   const notification = await Notification.findOne({
   _id: id,
-  company: req.user.company // 🔥 ADD THIS
+  company: req.user.company 
 });
 
   if (!notification) {

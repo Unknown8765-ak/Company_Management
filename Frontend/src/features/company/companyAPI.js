@@ -2,7 +2,6 @@
 
 const API_BASE_URL = "https://company-management-5yta.onrender.com"
 
-// 🔥 CREATE COMPANY
 const createCompany = async (data) => {
   try {
     const res = await fetch(`${API_BASE_URL}/api/v1/company/`, {
@@ -27,7 +26,6 @@ const createCompany = async (data) => {
 };
 
 
-// 🔥 GET ALL COMPANIES
 const getCompanies = async () => {
   try {
     const res = await fetch(`${API_BASE_URL}/api/v1/company/`,{
@@ -47,7 +45,6 @@ const getCompanies = async () => {
 };  
 
 
-// 🔥 GET SINGLE COMPANY
  const getCompany = async (id) => {
   try {
     if (!id) throw { message: "Company ID is required" };
@@ -69,7 +66,7 @@ const getCompanies = async () => {
 };
 
 
-// 🔥 UPDATE COMPANY
+
 const updateCompany = async (id, data) => {
   try {
     if (!id) throw { message: "Company ID is required" };
@@ -97,7 +94,6 @@ const updateCompany = async (id, data) => {
 
 
 
-// 🔥 DELETE COMPANY
 const deleteCompany = async (id) => {
   try {
     if (!id) throw { message: "Company ID is required" };
@@ -136,9 +132,9 @@ const createContactRequestAPI = async (payload) => {
       throw new Error(data.message || "API Error");
     }
 
-    return data; // ✅ MUST RETURN
+    return data;
   } catch (err) {
-    throw err; // ✅ throw so handleSubmit catch kare
+    throw err; 
   }
 };
 export {

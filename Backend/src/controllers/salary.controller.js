@@ -7,7 +7,6 @@ import { ApiResponse } from "../utils/ApiResponse.js";
 import { ApiError } from "../utils/ApiError.js";
 
 
-// ✅ 1. Generate Salary (Admin/HR)
 const generateSalary = asyncHandler(async (req, res) => {
 
   const { employeeId, month, year, baseSalary, totalWorkingDays } = req.body;
@@ -16,12 +15,10 @@ const generateSalary = asyncHandler(async (req, res) => {
     throw new ApiError(400, "All fields are required");
   }
 
-  // 🔐 check role
   if (!["admin", "hr"].includes(req.user.role)) {
     throw new ApiError(403, "Unauthorized");
   }
 
-  // 🔍 get leaves of that month
   const leaves = await Leave.find({
     employee: employeeId,
     company: req.user.company,
@@ -45,16 +42,13 @@ const generateSalary = asyncHandler(async (req, res) => {
     }
   });
 
-  // 🧠 presentDays calculate
   const presentDays = totalWorkingDays - (paidLeaves + unpaidLeaves);
 
-  // 💰 salary calculation
   const perDaySalary = baseSalary / totalWorkingDays;
   const paidDays = presentDays + paidLeaves;
 
   const netSalary = (perDaySalary * paidDays);
 
-  // 💾 create salary
   const salary = await Salary.create({
     employee: employeeId,
     company: req.user.company,
@@ -69,7 +63,6 @@ const generateSalary = asyncHandler(async (req, res) => {
     status: "processed"
   });
 
-  // 🔔 Notification → Employee
   await Notification.create({
     userId: employeeId,
     type: "salary_generated",
@@ -84,7 +77,6 @@ const generateSalary = asyncHandler(async (req, res) => {
 });
 
 
-// ✅ 2. Get My Salary (Employee)
 const getMySalary = asyncHandler(async (req, res) => {
 
   const salaries = await Salary.find({
@@ -96,7 +88,6 @@ const getMySalary = asyncHandler(async (req, res) => {
 });
 
 
-// ✅ 3. Get All Salaries (Admin/HR)
 const getAllSalaries = asyncHandler(async (req, res) => {
 
   if (!["admin", "hr", "super_admin"].includes(req.user.role)) {
@@ -113,7 +104,6 @@ const getAllSalaries = asyncHandler(async (req, res) => {
 });
 
 
-// ✅ 4. Mark Salary as Paid
 const markSalaryPaid = asyncHandler(async (req, res) => {
 
   if (!["admin", "hr"].includes(req.user.role)) {

@@ -24,13 +24,12 @@ const createCompany = asyncHandler(async (req, res) => {
     throw new ApiError(400, "All fields are required including admin details");
   }
 
-  // ✅ company check
+ 
   const existingCompany = await Company.findOne({ email });
   if (existingCompany) {
     throw new ApiError(409, "Company already exists");
   }
 
-  // ✅ admin check
   const existingAdmin = await User.findOne({ email: adminEmail });
   if (existingAdmin) {
     throw new ApiError(409, "Admin already exists with this email");
@@ -41,14 +40,14 @@ const createCompany = asyncHandler(async (req, res) => {
 
   try {
 
-    // 🔥 create company first
+    
     const [createdCompany] = await Company.create([{
       name,
       email,
       plan: plan || "free"
     }], { session });
 
-    // 🔥 create admin
+    
     const [admin] = await User.create([{
       name: adminName,
       email: adminEmail,
@@ -57,7 +56,7 @@ const createCompany = asyncHandler(async (req, res) => {
       company: createdCompany._id
     }], { session });
 
-    // ✅ OPTIONAL BUT IMPORTANT (link admin in company)
+   
     createdCompany.admin = admin._id;
     await createdCompany.save({ session });
 
@@ -125,7 +124,6 @@ const deleteCompany = asyncHandler(async (req, res) => {
     throw new ApiError(404, "Company not found");
   }
 
-  // 🔥 Optional but important (cleanup)
   await User.deleteMany({ company: id });
 
   await company.deleteOne();

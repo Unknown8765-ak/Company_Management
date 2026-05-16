@@ -50,7 +50,6 @@ if (hr) {
 });
 
 
-// ---------------- GET ALL (HR + ADMIN) ----------------
 
 const getAllRequirements = asyncHandler(async (req, res) => {
 
@@ -69,7 +68,6 @@ const getAllRequirements = asyncHandler(async (req, res) => {
 })
 
 
-// ---------------- GET MY ----------------
 
 const getMyRequirements = asyncHandler(async (req, res) => {
   console.log("REQ USER ID:", req.user._id)
@@ -156,7 +154,6 @@ if (admin) {
 })
 
 
-// ---------------- APPROVE / REJECT (ONLY SUPER ADMIN) ----------------
 
 const updateRequirementStatus = asyncHandler(async (req, res) => {
 
@@ -229,7 +226,6 @@ if (hr) {
 })
 
 
-// ---------------- DELETE ----------------
 
 const deleteRequirement = asyncHandler(async (req, res) => {
 

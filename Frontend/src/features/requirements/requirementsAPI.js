@@ -3,9 +3,6 @@
 const API_BASE_URL = "https://company-management-5yta.onrender.com"
 
 
-// ----------------------------
-// Create Requirement
-// ----------------------------
 export const createRequirementAPI = async (data) => {
   try {
 
@@ -32,9 +29,6 @@ export const createRequirementAPI = async (data) => {
 }
 
 
-// ----------------------------
-// Get All Requirements (HR / Admin)
-// ----------------------------
 export const getAllRequirementsAPI = async () => {
   try {
 
@@ -56,10 +50,6 @@ export const getAllRequirementsAPI = async () => {
   }
 }
 
-
-// ----------------------------
-// Get Logged Employee Requirements
-// ----------------------------
 export const getMyRequirementsAPI = async () => {
   try {
 
@@ -81,10 +71,6 @@ export const getMyRequirementsAPI = async () => {
   }
 }
 
-
-// ----------------------------
-// Update Requirement Status
-// ----------------------------
 export const updateRequirementStatusAPI = async (data) => {
   try {
 
@@ -111,9 +97,6 @@ export const updateRequirementStatusAPI = async (data) => {
 }
 
 
-// ----------------------------
-// Delete Requirement
-// ----------------------------
 export const deleteRequirementAPI = async (id) => {
   try {
 

@@ -184,7 +184,6 @@ const updateEmployee = asyncHandler(async (req, res) => {
     const oldDepartment = employee.department
     const newDepartment = req.body.department
 
-    // department change hua
     if(newDepartment && oldDepartment.toString() !== newDepartment){
 
         await Department.findOneAndUpdate(
@@ -240,7 +239,6 @@ const deleteEmployee = asyncHandler(async (req, res) => {
         throw new ApiError(404, "Employee not found")
     }
 
-    // department update
     await Department.findOneAndUpdate(
   { _id: employee.department, company: req.user.company },
   {
